@@ -20,7 +20,15 @@
 #     Santiago Dueñas <sduenas@bitergia.com>
 #
 
+import urlparse
+
+import requests
+
 from octopus.backends import Backend
+
+
+PROJECTS_LIMIT = 20
+PUPPET_MODULES_PATH = '/v3/modules'
 
 
 class PuppetForge(Backend):
@@ -28,3 +36,26 @@ class PuppetForge(Backend):
     def __init__(self):
         super(PuppetForge, self).__init__('puppet')
 
+
+class PuppetForgeFetcher(object):
+
+    HEADERS = {'User-Agent': 'Octopus/0.0.1'}
+
+    def __init__(self, base_url):
+        self.base_url = base_url
+        self._last_url = None
+
+    @property
+    def last_url(self):
+        return self._last_url
+
+    def projects(self, offset, limit=PROJECTS_LIMIT):
+        params = {'offset' : offset,
+                  'limit' : limit}
+        url = urlparse.urljoin(self.base_url, PUPPET_MODULES_PATH)
+
+        r = requests.get(url, params=params,
+                         headers=PuppetForgeFetcher.HEADERS)
+
+        self._last_url = r.url
+        return r.json()
