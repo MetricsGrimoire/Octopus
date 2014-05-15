@@ -31,7 +31,8 @@ if not '..' in sys.path:
 from BaseHTTPServer import BaseHTTPRequestHandler
 
 from octopus.backends import Backend
-from octopus.backends.puppet import PuppetForge, PuppetForgeFetcher
+from octopus.backends.puppet import PuppetForge, PuppetForgeFetcher,\
+    PuppetForgeProjectsIterator
 from mock_http_server import MockHTTPServer
 from utils import read_file
 
@@ -134,6 +135,30 @@ class TestPuppetForgeFetcher(unittest.TestCase):
 
         fetcher.projects(20, 10)
         self.assertEqual(test_modules_url_10, fetcher.last_url)
+
+
+class TestPuppetForgeProjectsIterator(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.httpd = MockHTTPServer(HTTP_HOST, HTTP_PORT, TEST_FILES_DIRNAME,
+                                   MockPuppetForgeHTTPHandler)
+        cls.httpd.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.httpd.stop()
+
+    def test_is_iterable(self):
+        import collections
+        iterator = PuppetForgeProjectsIterator(MOCK_HTTP_SERVER_URL)
+        self.assertIsInstance(iterator, collections.Iterable)
+
+    def test_projects_iterator(self):
+        iterator = PuppetForgeProjectsIterator(MOCK_HTTP_SERVER_URL)
+
+        l = [elem for elem in iterator]
+        self.assertEqual(39, len(l))
 
 
 if __name__ == "__main__":
