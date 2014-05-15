@@ -44,3 +44,7 @@ class MockHTTPServer(Thread, HTTPServer):
 
     def run(self):
         self.serve_forever()
+
+    def stop(self):
+        self.shutdown()
+        self.socket.close()
