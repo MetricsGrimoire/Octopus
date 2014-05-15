@@ -25,6 +25,7 @@ import urlparse
 import requests
 
 from octopus.backends import Backend, ProjectsIterator
+from octopus.model import Project
 
 
 PROJECTS_LIMIT = 20
@@ -66,6 +67,7 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
     def __init__(self, base_url):
         super(PuppetForgeProjectsIterator, self).__init__()
         self.fetcher = PuppetForgeFetcher(base_url)
+        self.base_url = base_url
         self.projects = []
         self.has_next = True
         self.offset = 0
@@ -74,9 +76,9 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
         return self
 
     def next(self):
-        # Check if there are parsed projects in the stack
+        # Check if there are parsed projects in the queue
         if self.projects:
-            return self.projects.pop()
+            return self.projects.pop(0)
 
         # Check if there are more projects to fetch
         if not self.has_next:
@@ -91,6 +93,9 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
             self.offset += PROJECTS_LIMIT
 
         for r in json['results']:
-            self.projects.append(r)
+            project = Project()
+            project.name = r['name']
+            project.url = self.base_url + r['uri']
+            self.projects.append(project)
 
-        return self.projects.pop()
+        return self.projects.pop(0)

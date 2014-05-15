@@ -33,6 +33,7 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 from octopus.backends import Backend
 from octopus.backends.puppet import PuppetForge, PuppetForgeFetcher,\
     PuppetForgeProjectsIterator
+from octopus.model import Project
 from mock_http_server import MockHTTPServer
 from utils import read_file
 
@@ -157,8 +158,36 @@ class TestPuppetForgeProjectsIterator(unittest.TestCase):
     def test_projects_iterator(self):
         iterator = PuppetForgeProjectsIterator(MOCK_HTTP_SERVER_URL)
 
-        l = [elem for elem in iterator]
-        self.assertEqual(39, len(l))
+        projects = [elem for elem in iterator]
+        self.assertEqual(39, len(projects))
+
+        for project in projects:
+            self.assertIsInstance(project, Project)
+
+    def test_projects_content(self):
+        iterator = PuppetForgeProjectsIterator(MOCK_HTTP_SERVER_URL)
+
+        projects = [elem for elem in iterator]
+
+        project = projects[0]
+        self.assertEqual('stdlib', project.name)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/puppetlabs-stdlib', project.url)
+
+        project = projects[1]
+        self.assertEqual('concat', project.name)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/puppetlabs-concat', project.url)
+
+        project = projects[19]
+        self.assertEqual('openldap', project.name)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/camptocamp-openldap', project.url)
+
+        project = projects[20]
+        self.assertEqual('altlib', project.name)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/opentable-altlib', project.url)
+
+        project = projects[38]
+        self.assertEqual('vagrant', project.name)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/mjanser-vagrant', project.url)
 
 
 if __name__ == "__main__":
