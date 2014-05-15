@@ -30,3 +30,13 @@ class Backend(object):
     @property
     def name(self):
         return self._name
+
+
+class ProjectsIterator(object):
+    """Abstract projects iterator"""
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        raise NotImplementedError

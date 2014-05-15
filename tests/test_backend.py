@@ -26,7 +26,7 @@ import unittest
 if not '..' in sys.path:
     sys.path.insert(0, '..')
 
-from octopus.backends import Backend
+from octopus.backends import Backend, ProjectsIterator
 
 
 # Backends for unit tests
@@ -55,6 +55,14 @@ class TestBackend(unittest.TestCase):
         backend = FakeBackend()
         self.assertRaises(AttributeError, setattr, backend, 'name', 'ErrorName')
         self.assertEqual('FakeBackend', backend.name)
+
+
+class TestProjectsIterator(unittest.TestCase):
+
+    def test_is_iterable(self):
+        import collections
+        iterator = ProjectsIterator()
+        self.assertIsInstance(iterator, collections.Iterable)
 
 
 if __name__ == "__main__":
