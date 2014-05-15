@@ -20,7 +20,7 @@
 #         Santiago Dueñas <sduenas@bitergia.com>
 #
 
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Table, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -40,6 +40,12 @@ class Platform(ModelBase):
     projects = relationship("Project", backref='platforms')
 
 
+projects_users_table = Table('projects_users', ModelBase.metadata,
+    Column('project_id', Integer, ForeignKey('projects.id')),
+    Column('user_id', Integer, ForeignKey('users.id'))
+)
+
+
 class Project(ModelBase):
     __tablename__ = 'projects'
 
@@ -47,4 +53,14 @@ class Project(ModelBase):
     name = Column(String(32))
     url = Column(String(128))
     platform_id = Column(Integer, ForeignKey('platforms.id'))
+
+    # many to many projects-users relationship
+    users = relationship("User", secondary=projects_users_table)
+
+
+class User(ModelBase):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    username = name = Column(String(32))
 
