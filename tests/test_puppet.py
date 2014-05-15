@@ -41,6 +41,7 @@ HTTP_HOST = 'localhost'
 HTTP_PORT = 9999
 TEST_FILES_DIRNAME = 'data'
 TIMEOUT = 5
+MOCK_HTTP_SERVER_URL = 'http://' + HTTP_HOST + ':' + str(HTTP_PORT)
 
 PUPPET_MODULES_1 = 'puppet_modules_1.json'
 PUPPET_MODULES_2 = 'puppet_modules_2.json'
@@ -93,8 +94,6 @@ class TestPuppetForge(unittest.TestCase):
 
 class TestPuppetForgeFetcher(unittest.TestCase):
 
-    HTTP_BASE_URL = 'http://' + HTTP_HOST + ':' + str(HTTP_PORT)
-
     @classmethod
     def setUpClass(cls):
         cls.httpd = MockHTTPServer(HTTP_HOST, HTTP_PORT, TEST_FILES_DIRNAME,
@@ -103,15 +102,15 @@ class TestPuppetForgeFetcher(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls):
-        cls.httpd.shutdown()
+        cls.httpd.stop()
 
     def test_readonly_properties(self):
-        fetcher = PuppetForgeFetcher(self.HTTP_BASE_URL)
-        self.assertRaises(AttributeError, setattr, fetcher, 'last_url', self.HTTP_BASE_URL)
+        fetcher = PuppetForgeFetcher(MOCK_HTTP_SERVER_URL)
+        self.assertRaises(AttributeError, setattr, fetcher, 'last_url', MOCK_HTTP_SERVER_URL)
         self.assertEqual(None, fetcher.last_url)
 
     def test_projects_request(self):
-        fetcher = PuppetForgeFetcher(self.HTTP_BASE_URL)
+        fetcher = PuppetForgeFetcher(MOCK_HTTP_SERVER_URL)
 
         json = fetcher.projects(0, 20)
         self.assertEqual(0, json['pagination']['offset'])
@@ -125,10 +124,10 @@ class TestPuppetForgeFetcher(unittest.TestCase):
         self.assertEqual(19, len(json['results']))
 
     def test_last_requested_url(self):
-        test_modules_url_50 = self.HTTP_BASE_URL + '/v3/modules?limit=50&offset=0'
-        test_modules_url_10 = self.HTTP_BASE_URL + '/v3/modules?limit=10&offset=20'
+        test_modules_url_50 = MOCK_HTTP_SERVER_URL + '/v3/modules?limit=50&offset=0'
+        test_modules_url_10 = MOCK_HTTP_SERVER_URL + '/v3/modules?limit=10&offset=20'
 
-        fetcher = PuppetForgeFetcher(self.HTTP_BASE_URL)
+        fetcher = PuppetForgeFetcher(MOCK_HTTP_SERVER_URL)
 
         fetcher.projects(0, 50)
         self.assertEqual(test_modules_url_50, fetcher.last_url)
