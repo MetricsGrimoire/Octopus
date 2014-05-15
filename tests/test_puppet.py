@@ -33,7 +33,8 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 from octopus.backends import Backend
 from octopus.backends.puppet import PuppetForge, PuppetForgeFetcher,\
     PuppetForgeProjectsIterator
-from octopus.model import Project
+from octopus.model import Project, User
+
 from mock_http_server import MockHTTPServer
 from utils import read_file
 
@@ -172,22 +173,57 @@ class TestPuppetForgeProjectsIterator(unittest.TestCase):
         project = projects[0]
         self.assertEqual('stdlib', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/puppetlabs-stdlib', project.url)
+        self.assertEqual(1, len(project.users))
 
         project = projects[1]
         self.assertEqual('concat', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/puppetlabs-concat', project.url)
+        self.assertEqual(1, len(project.users))
 
         project = projects[19]
         self.assertEqual('openldap', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/camptocamp-openldap', project.url)
+        self.assertEqual(1, len(project.users))
 
         project = projects[20]
         self.assertEqual('altlib', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/opentable-altlib', project.url)
+        self.assertEqual(1, len(project.users))
 
         project = projects[38]
         self.assertEqual('vagrant', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/mjanser-vagrant', project.url)
+        self.assertEqual(1, len(project.users))
+
+
+    def test_projects_users(self):
+        iterator = PuppetForgeProjectsIterator(MOCK_HTTP_SERVER_URL)
+
+        projects = [elem for elem in iterator]
+
+        a_user = projects[0].users[0]
+        self.assertIsInstance(a_user, User)
+        self.assertEqual('puppetlabs', a_user.username)
+
+        b_user = projects[1].users[0]
+        self.assertIsInstance(b_user, User)
+        self.assertEqual('puppetlabs', b_user.username)
+
+        # a_user and b_user must be the same
+        self.assertEqual(a_user, b_user)
+
+        # Check the rest of users
+        user = projects[19].users[0]
+        self.assertIsInstance(user, User)
+        self.assertEqual('camptocamp', user.username)
+
+        user = projects[20].users[0]
+        self.assertIsInstance(user, User)
+        self.assertEqual('opentable', user.username)
+
+        user = projects[38].users[0]
+        self.assertIsInstance(user, User)
+        self.assertEqual('mjanser', user.username)
 
 
 if __name__ == "__main__":

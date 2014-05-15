@@ -25,7 +25,7 @@ import urlparse
 import requests
 
 from octopus.backends import Backend, ProjectsIterator
-from octopus.model import Project
+from octopus.model import Project, User
 
 
 PROJECTS_LIMIT = 20
@@ -69,6 +69,7 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
         self.fetcher = PuppetForgeFetcher(base_url)
         self.base_url = base_url
         self.projects = []
+        self.users = {}
         self.has_next = True
         self.offset = 0
 
@@ -96,6 +97,19 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
             project = Project()
             project.name = r['name']
             project.url = self.base_url + r['uri']
+
+            # Assign owner of the project
+            username = r['owner']['username']
+
+            if not username in self.users:
+                user = User()
+                user.username = username
+                self.users[username] = user
+            else:
+                user = self.users[username]
+
+            project.users.append(user)
+
             self.projects.append(project)
 
         return self.projects.pop(0)
