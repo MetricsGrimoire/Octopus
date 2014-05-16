@@ -20,7 +20,7 @@
 #         Santiago Dueñas <sduenas@bitergia.com>
 #
 
-from sqlalchemy import Table, Column, Integer, String, ForeignKey
+from sqlalchemy import Table, Column, DateTime, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -57,6 +57,9 @@ class Project(ModelBase):
     # many to many projects-users relationship
     users = relationship("User", secondary=projects_users_table)
 
+    # one to many projects-releases relationship
+    releases = relationship("Release", backref='project_releases')
+
 
 class User(ModelBase):
     __tablename__ = 'users'
@@ -64,3 +67,18 @@ class User(ModelBase):
     id = Column(Integer, primary_key=True)
     username = name = Column(String(32))
 
+    releases = relationship("Release", backref='user_releases')
+
+
+class Release(ModelBase):
+    __tablename__ = 'releases'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32))
+    version = Column(String(32))
+    url = Column(String(128))
+    file_url = Column(String(128))
+    created_on = Column(DateTime())
+    updated_on = Column(DateTime())
+    author_id = Column(Integer, ForeignKey('users.id'))
+    project_id = Column(Integer, ForeignKey('projects.id'))
