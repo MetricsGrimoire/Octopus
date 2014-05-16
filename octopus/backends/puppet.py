@@ -21,11 +21,12 @@
 #
 
 import urlparse
+import dateutil.parser
 
 import requests
 
-from octopus.backends import Backend, ProjectsIterator
-from octopus.model import Project, User
+from octopus.backends import Backend, ProjectsIterator, ReleasesIterator
+from octopus.model import Project, User, Release
 
 
 PROJECTS_LIMIT = 20
@@ -129,3 +130,54 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
             self.projects.append(project)
 
         return self.projects.pop(0)
+
+
+class PuppetForgeReleasesIterator(ReleasesIterator):
+
+    def __init__(self, base_url, project, username):
+        super(PuppetForgeReleasesIterator, self).__init__()
+        self.fetcher = PuppetForgeFetcher(base_url)
+        self.base_url = base_url
+        self.project = project
+        self.username = username
+        self.releases = []
+        self.has_next = True
+        self.offset = 0
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        # Check if there are parsed releases in the queue
+        if self.releases:
+            return self.releases.pop(0)
+
+        # Check if there are more releases to fetch
+        if not self.has_next:
+            raise StopIteration
+
+        # Fetch new set of releases
+        json = self.fetcher.releases(self.project, self.username,
+                                     self.offset, RELEASES_LIMIT)
+
+        if not json['pagination']['next']:
+            self.has_next = False
+        else:
+            self.offset += RELEASES_LIMIT
+
+        for r in json['results']:
+            release = Release()
+            release.name = r['metadata']['name']
+            release.version = r['metadata']['version']
+            release.url = self.base_url + r['uri']
+            release.file_url = self.base_url + r['file_uri']
+            release.created_on = self.__unmarshal_timestamp(r['created_at'])
+            release.updated_on = self.__unmarshal_timestamp(r['updated_at'])
+
+            self.releases.append(release)
+
+        return self.releases.pop(0)
+
+    def __unmarshal_timestamp(self, ts):
+        # FIXME: store time zone data
+        return dateutil.parser.parse(ts).replace(tzinfo=None)

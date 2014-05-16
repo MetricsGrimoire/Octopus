@@ -32,8 +32,8 @@ from BaseHTTPServer import BaseHTTPRequestHandler
 
 from octopus.backends import Backend
 from octopus.backends.puppet import PuppetForge, PuppetForgeFetcher,\
-    PuppetForgeProjectsIterator
-from octopus.model import Project, User
+    PuppetForgeProjectsIterator, PuppetForgeReleasesIterator
+from octopus.model import Project, User, Release
 
 from mock_http_server import MockHTTPServer
 from utils import read_file
@@ -277,6 +277,96 @@ class TestPuppetForgeProjectsIterator(unittest.TestCase):
         user = projects[38].users[0]
         self.assertIsInstance(user, User)
         self.assertEqual('mjanser', user.username)
+
+
+class TestPuppetForgeReleasesIterator(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        cls.httpd = MockHTTPServer(HTTP_HOST, HTTP_PORT, TEST_FILES_DIRNAME,
+                                   MockPuppetForgeHTTPHandler)
+        cls.httpd.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.httpd.stop()
+
+    def test_is_iterable(self):
+        import collections
+        iterator = PuppetForgeReleasesIterator(MOCK_HTTP_SERVER_URL,
+                                               'stdlib', 'puppetlabs')
+        self.assertIsInstance(iterator, collections.Iterable)
+
+    def test_releases_iterator(self):
+        iterator = PuppetForgeReleasesIterator(MOCK_HTTP_SERVER_URL,
+                                               'stdlib', 'puppetlabs')
+
+        releases = [elem for elem in iterator]
+        self.assertEqual(30, len(releases))
+
+        for release in releases:
+            self.assertIsInstance(release, Release)
+
+    def test_releases_content(self):
+        iterator = PuppetForgeReleasesIterator(MOCK_HTTP_SERVER_URL,
+                                               'stdlib', 'puppetlabs')
+
+        releases = [elem for elem in iterator]
+
+        release = releases[0]
+        self.assertEqual('puppetlabs-stdlib', release.name)
+        self.assertEqual('4.1.0', release.version)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/releases/puppetlabs-stdlib-4.1.0', release.url)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/files/puppetlabs-stdlib-4.1.0.tar.gz', release.file_url)
+        self.assertEqual('2013-05-13 08:31:19', str(release.created_on))
+        self.assertEqual('2013-05-13 08:31:19', str(release.updated_on))
+
+        release = releases[1]
+        self.assertEqual('puppetlabs-stdlib', release.name)
+        self.assertEqual('3.2.0', release.version)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/releases/puppetlabs-stdlib-3.2.0', release.url)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/files/puppetlabs-stdlib-3.2.0.tar.gz', release.file_url)
+        self.assertEqual('2012-11-28 14:53:03', str(release.created_on))
+        self.assertEqual('2012-11-28 14:53:03', str(release.updated_on))
+
+        release = releases[29]
+        self.assertEqual('puppetlabs-stdlib', release.name)
+        self.assertEqual('0.1.6', release.version)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/releases/puppetlabs-stdlib-0.1.6', release.url)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/files/puppetlabs-stdlib-0.1.6.tar.gz', release.file_url)
+        self.assertEqual('2011-06-15 18:55:45', str(release.created_on))
+        self.assertEqual('2011-06-15 18:55:45', str(release.updated_on))
+
+        # Check releases from other project 
+        iterator = PuppetForgeReleasesIterator(MOCK_HTTP_SERVER_URL,
+                                               'vagrant', 'mjanser')
+
+        releases = [elem for elem in iterator]
+        self.assertEqual(3, len(releases))
+
+        release = releases[0]
+        self.assertEqual('mjanser-vagrant', release.name)
+        self.assertEqual('1.1.0', release.version)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/releases/mjanser-vagrant-1.1.0', release.url)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/files/mjanser-vagrant-1.1.0.tar.gz', release.file_url)
+        self.assertEqual('2014-05-10 03:48:43', str(release.created_on))
+        self.assertEqual('2014-05-10 03:48:43', str(release.updated_on))
+
+        release = releases[1]
+        self.assertEqual('mjanser-vagrant', release.name)
+        self.assertEqual('1.0.0', release.version)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/releases/mjanser-vagrant-1.0.0', release.url)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/files/mjanser-vagrant-1.0.0.tar.gz', release.file_url)
+        self.assertEqual('2014-05-10 01:23:58', str(release.created_on))
+        self.assertEqual('2014-05-10 03:48:35', str(release.updated_on))
+
+        release = releases[2]
+        self.assertEqual('mjanser-vagrant', release.name)
+        self.assertEqual('0.1.0', release.version)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/releases/mjanser-vagrant-0.1.0', release.url)
+        self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/files/mjanser-vagrant-0.1.0.tar.gz', release.file_url)
+        self.assertEqual('2014-05-10 01:04:45', str(release.created_on))
+        self.assertEqual('2014-05-10 01:23:51', str(release.updated_on))
 
 
 if __name__ == "__main__":
