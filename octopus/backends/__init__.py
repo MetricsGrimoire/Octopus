@@ -40,3 +40,13 @@ class ProjectsIterator(object):
 
     def next(self):
         raise NotImplementedError
+
+
+class ReleasesIterator(object):
+    """Abstract releases iterator"""
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        raise NotImplementedError
