@@ -46,8 +46,14 @@ TEST_FILES_DIRNAME = 'data'
 TIMEOUT = 5
 MOCK_HTTP_SERVER_URL = 'http://' + HTTP_HOST + ':' + str(HTTP_PORT)
 
+PUPPET_PROJECT_STDLIB = 'puppetlabs-stdlib'
+PUPPET_PROJECT_VAGRANT = 'mjanser-vagrant'
+
 PUPPET_MODULES_1 = 'puppet_modules_1.json'
 PUPPET_MODULES_2 = 'puppet_modules_2.json'
+PUPPET_RELEASES_STDLIB_1 = 'puppet_rel_stdlib_1.json'
+PUPPET_RELEASES_STDLIB_2 = 'puppet_rel_stdlib_2.json'
+PUPPET_RELEASES_VAGRANT = 'puppet_rel_vagrant.json'
 
 
 class MockPuppetForgeHTTPHandler(BaseHTTPRequestHandler):
@@ -59,6 +65,8 @@ class MockPuppetForgeHTTPHandler(BaseHTTPRequestHandler):
 
         if parts.path == '/v3/modules':
             self.projects(qs)
+        elif parts.path == '/v3/releases':
+            self.releases(qs)
         else:
             self.not_found()
 
@@ -72,6 +80,27 @@ class MockPuppetForgeHTTPHandler(BaseHTTPRequestHandler):
             filepath = os.path.join(TEST_FILES_DIRNAME, PUPPET_MODULES_1)
         else:
             filepath = os.path.join(TEST_FILES_DIRNAME, PUPPET_MODULES_2)
+        json = read_file(filepath)
+
+        self.send_response(200, 'Ok')
+        self.end_headers()
+        self.wfile.write(json)
+
+    def releases(self, qs):
+        if 'offset' in qs:
+            offset = int(qs['offset'][0])
+        else:
+            offset = 0
+
+        if qs['module'][0] == PUPPET_PROJECT_VAGRANT:
+            filepath = os.path.join(TEST_FILES_DIRNAME,
+                                    PUPPET_RELEASES_VAGRANT)
+        elif offset < 20:
+            filepath = os.path.join(TEST_FILES_DIRNAME,
+                                    PUPPET_RELEASES_STDLIB_1)
+        else:
+            filepath = os.path.join(TEST_FILES_DIRNAME,
+                                    PUPPET_RELEASES_STDLIB_2)
         json = read_file(filepath)
 
         self.send_response(200, 'Ok')
@@ -126,14 +155,38 @@ class TestPuppetForgeFetcher(unittest.TestCase):
         self.assertEqual(None, json['pagination']['next'])
         self.assertEqual(19, len(json['results']))
 
+    def test_releases_request(self):
+        fetcher = PuppetForgeFetcher(MOCK_HTTP_SERVER_URL)
+
+        json = fetcher.releases('stdlib', 'puppetlabs', 0, 20)
+        self.assertEqual(0, json['pagination']['offset'])
+        self.assertEqual(20, json['pagination']['limit'])
+        self.assertEqual(20, len(json['results']))
+
+        json = fetcher.releases('stdlib', 'puppetlabs', 20, 20)
+        self.assertEqual(20, json['pagination']['offset'])
+        self.assertEqual(20, json['pagination']['limit'])
+        self.assertEqual(None, json['pagination']['next'])
+        self.assertEqual(10, len(json['results']))
+
+        json = fetcher.releases('vagrant', 'mjanser', 0, 20)
+        self.assertEqual(0, json['pagination']['offset'])
+        self.assertEqual(20, json['pagination']['limit'])
+        self.assertEqual(None, json['pagination']['next'])
+        self.assertEqual(3, len(json['results']))
+
     def test_last_requested_url(self):
         test_modules_url_50 = MOCK_HTTP_SERVER_URL + '/v3/modules?limit=50&offset=0'
         test_modules_url_10 = MOCK_HTTP_SERVER_URL + '/v3/modules?limit=10&offset=20'
+        test_releases_url_vagrant = MOCK_HTTP_SERVER_URL + '/v3/releases?limit=16&module=mjanser-vagrant&offset=8'
 
         fetcher = PuppetForgeFetcher(MOCK_HTTP_SERVER_URL)
 
         fetcher.projects(0, 50)
         self.assertEqual(test_modules_url_50, fetcher.last_url)
+
+        fetcher.releases('vagrant', 'mjanser', 8, 16)
+        self.assertEqual(test_releases_url_vagrant, fetcher.last_url)
 
         fetcher.projects(20, 10)
         self.assertEqual(test_modules_url_10, fetcher.last_url)

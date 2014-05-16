@@ -1,0 +1,221 @@
+{
+  "pagination": {
+    "limit": 20,
+    "offset": 0,
+    "first": "/v3/releases?module=mjanser-vagrant&limit=20&offset=0",
+    "previous": null,
+    "current": "/v3/releases?module=mjanser-vagrant&limit=20&offset=0",
+    "next": null,
+    "total": 3
+  },
+  "results": [
+    {
+      "uri": "/v3/releases/mjanser-vagrant-1.1.0",
+      "module": {
+        "uri": "/v3/modules/mjanser-vagrant",
+        "name": "vagrant",
+        "owner": {
+          "uri": "/v3/users/mjanser",
+          "username": "mjanser",
+          "gravatar_id": "99f9cb27a6bf1143b2b77bc6f9da3145"
+        }
+      },
+      "version": "1.1.0",
+      "metadata": {
+        "author": "Martin Janser",
+        "description": "Install Vagrant and plugins for it",
+        "license": "MIT",
+        "name": "mjanser-vagrant",
+        "project_page": "https://github.com/mjanser/puppet-vagrant.git",
+        "source": "git://github.com/mjanser/puppet-vagrant.git",
+        "summary": "Install Vagrant",
+        "version": "1.1.0",
+        "requirements": [
+          {
+            "name": "pe",
+            "version_requirement": "3.2.x"
+          },
+          {
+            "name": "puppet",
+            "version_requirement": "3.x"
+          }
+        ],
+        "operatingsystem_support": [
+          {
+            "operatingsystem": "RedHat"
+          },
+          {
+            "operatingsystem": "Debian"
+          },
+          {
+            "operatingsystem": "Ubuntu"
+          },
+          {
+            "operatingsystem": "Darwin"
+          },
+          {
+            "operatingsystem": "Windows"
+          }
+        ],
+        "dependencies": [
+
+        ],
+        "types": [
+
+        ],
+        "checksums": {
+          "LICENSE": "882fc7f770b733faf5c530b2992d5b40",
+          "Modulefile": "e917ef1b4f4d61cf74f400581be1b2df",
+          "README.md": "612330c8f00bddcc5c5612cd758c91d3",
+          "manifests/bash.pp": "adea842e113d2b781827dbc6ff3a72e4",
+          "manifests/init.pp": "566f0234da6a3ad827863cc8eeef1020",
+          "manifests/plugin.pp": "a8a3f010806efd5835b7b15e67940300",
+          "manifests/sudo.pp": "3ad02427147ccd6e749e0400f3c98627"
+        }
+      },
+      "tags": [
+        "vagrant"
+      ],
+      "supported": false,
+      "file_uri": "/v3/files/mjanser-vagrant-1.1.0.tar.gz",
+      "file_size": 3899,
+      "file_md5": "668f9fe20f8b605c36cf82ca71b8ce36",
+      "downloads": 17,
+      "readme": "<section class=\"markdown\"><h1>Vagrant module for Puppet</h1>\n\n<p>This module installs the latest version of Vagrant from <a href=\"http://www.vagrantup.com/downloads.html\">http://www.vagrantup.com/downloads.html</a>.</p>\n\n<h2>Description</h2>\n\n<p>This module uses $::operatingsystem and $::architecture to determine what package to install.</p>\n\n<p>NOTE: Versions older than 1.4.0 are not supported by this module because the download URL was complexer then.</p>\n\n<p>Currently supports:</p>\n\n<ul>\n<li>CentOS and Redhat (i386 and x86)</li>\n<li>Ubuntu and Debian (i386 and x86)</li>\n<li>Windows (not tested)</li>\n<li>Darwin (not tested)</li>\n</ul>\n\n<h2>Usage</h2>\n\n<p>Install latest version</p>\n\n<pre><code>include vagrant\n</code></pre>\n\n<p>Install 1.5.0</p>\n\n<pre><code>class { &#39;vagrant&#39;:\n   version =&gt; &#39;1.5.0&#39;\n}\n</code></pre>\n\n<p>Install plugin</p>\n\n<pre><code>vagrant::plugin { &#39;vagrant-hostmanager&#39;:\n   user =&gt; &#39;myuser&#39;\n}\n</code></pre>\n\n<p>Install plugin in specific version</p>\n\n<pre><code>vagrant::plugin { &#39;vagrant-hostmanager&#39;:\n   user    =&gt; &#39;myuser&#39;,\n   version =&gt; 0.8.0\n}\n</code></pre>\n\n<p>The home directory of the user is generated with the prefix <em>/home/</em> and the username.\nThis can be overridden with the <em>home</em> option.</p>\n\n<pre><code>vagrant::plugin { &#39;vagrant-hostmanager&#39;:\n   user =&gt; &#39;myuser&#39;,\n   home =&gt; &#39;/home/otheruser&#39;\n}\n</code></pre>\n\n<p>There are some more options which are the same as supported by the <em>vagrant plugin</em> command.</p>\n\n<ul>\n<li>prerelease</li>\n<li>source</li>\n<li>entry_point</li>\n</ul>\n\n<p>Install bash completion</p>\n\n<pre><code>include vagrant::bash\n</code></pre>\n\n<p>Install sudo configuration</p>\n\n<pre><code>include vagrant::sudo\n</code></pre>\n</section>",
+      "changelog": null,
+      "license": "<section class=\"plaintext\"><pre>The MIT License (MIT)\n\nCopyright (c) 2013 Dennis Rowe\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the &quot;Software&quot;), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and&#x2F;or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.</pre></section>",
+      "created_at": "2014-05-10 03:48:43 -0700",
+      "updated_at": "2014-05-10 03:48:43 -0700",
+      "deleted_at": null
+    },
+    {
+      "uri": "/v3/releases/mjanser-vagrant-1.0.0",
+      "module": {
+        "uri": "/v3/modules/mjanser-vagrant",
+        "name": "vagrant",
+        "owner": {
+          "uri": "/v3/users/mjanser",
+          "username": "mjanser",
+          "gravatar_id": "99f9cb27a6bf1143b2b77bc6f9da3145"
+        }
+      },
+      "version": "1.0.0",
+      "metadata": {
+        "author": "Martin Janser",
+        "description": "Install Vagrant and plugins for it",
+        "license": "MIT",
+        "name": "mjanser-vagrant",
+        "project_page": "https://github.com/mjanser/puppet-vagrant.git",
+        "source": "git://github.com/mjanser/puppet-vagrant.git",
+        "summary": "Install Vagrant",
+        "version": "1.0.0",
+        "requirements": [
+          {
+            "name": "pe",
+            "version_requirement": "3.2.x"
+          },
+          {
+            "name": "puppet",
+            "version_requirement": "3.x"
+          }
+        ],
+        "operatingsystem_support": [
+          {
+            "operatingsystem": "RedHat"
+          },
+          {
+            "operatingsystem": "Debian"
+          },
+          {
+            "operatingsystem": "Ubuntu"
+          },
+          {
+            "operatingsystem": "Darwin"
+          },
+          {
+            "operatingsystem": "Windows"
+          }
+        ],
+        "dependencies": [
+
+        ],
+        "types": [
+
+        ],
+        "checksums": {
+          "LICENSE": "882fc7f770b733faf5c530b2992d5b40",
+          "Modulefile": "a6881eb475e8706cd83c1dfd9be1d045",
+          "README.md": "2af6b8d8715bed7c140b2af3f5d914e6",
+          "manifests/bash.pp": "5598d6ea9492fc771fe38aab29c4da20",
+          "manifests/init.pp": "566f0234da6a3ad827863cc8eeef1020",
+          "manifests/plugin.pp": "a8a3f010806efd5835b7b15e67940300"
+        }
+      },
+      "tags": [
+        "vagrant"
+      ],
+      "supported": false,
+      "file_uri": "/v3/files/mjanser-vagrant-1.0.0.tar.gz",
+      "file_size": 3610,
+      "file_md5": "5513ae71f4516d36580a5a5c8e724d9d",
+      "downloads": 2,
+      "readme": "<section class=\"markdown\"><h1>Vagrant module for Puppet</h1>\n\n<p>This module installs the latest version of Vagrant from <a href=\"http://www.vagrantup.com/downloads.html\">http://www.vagrantup.com/downloads.html</a>.</p>\n\n<h2>Description</h2>\n\n<p>This module uses $::operatingsystem and $::architecture to determine what package to install.</p>\n\n<p>NOTE: Versions older than 1.4.0 are not supported by this module because the download URL was complexer then.</p>\n\n<p>Currently supports:</p>\n\n<ul>\n<li>CentOS and Redhat (i386 and x86)</li>\n<li>Ubuntu and Debian (i386 and x86)</li>\n<li>Windows (not tested)</li>\n<li>Darwin (not tested)</li>\n</ul>\n\n<h2>Usage</h2>\n\n<p>Install latest version</p>\n\n<pre><code>include vagrant\n</code></pre>\n\n<p>Install 1.5.0</p>\n\n<pre><code>class { &#39;vagrant&#39;:\n   version =&gt; &#39;1.5.0&#39;\n}\n</code></pre>\n\n<p>Install bash completion</p>\n\n<pre><code>include vagrant::bash\n</code></pre>\n\n<p>Install plugin</p>\n\n<pre><code>vagrant::plugin { &#39;vagrant-hostmanager&#39;:\n   home =&gt; &#39;/home/myuser&#39;\n}\n</code></pre>\n\n<p>Install plugin in specific version</p>\n\n<pre><code>vagrant::plugin { &#39;vagrant-hostmanager&#39;:\n   home    =&gt; &#39;/home/myuser&#39;,\n   version =&gt; 0.8.0\n}\n</code></pre>\n\n<p>Install a pre-release plugin</p>\n\n<pre><code>vagrant::plugin { &#39;vagrant-hostmanager&#39;:\n   home       =&gt; &#39;/home/myuser&#39;,\n   prerelease =&gt; true\n}\n</code></pre>\n</section>",
+      "changelog": null,
+      "license": "<section class=\"plaintext\"><pre>The MIT License (MIT)\n\nCopyright (c) 2013 Dennis Rowe\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the &quot;Software&quot;), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and&#x2F;or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.</pre></section>",
+      "created_at": "2014-05-10 01:23:58 -0700",
+      "updated_at": "2014-05-10 03:48:35 -0700",
+      "deleted_at": null
+    },
+    {
+      "uri": "/v3/releases/mjanser-vagrant-0.1.0",
+      "module": {
+        "uri": "/v3/modules/mjanser-vagrant",
+        "name": "vagrant",
+        "owner": {
+          "uri": "/v3/users/mjanser",
+          "username": "mjanser",
+          "gravatar_id": "99f9cb27a6bf1143b2b77bc6f9da3145"
+        }
+      },
+      "version": "0.1.0",
+      "metadata": {
+        "author": "Martin Janser",
+        "checksums": {
+          "LICENSE": "882fc7f770b733faf5c530b2992d5b40",
+          "Modulefile": "f8504e83bf503f9e0eda0867b835e86a",
+          "README.md": "2af6b8d8715bed7c140b2af3f5d914e6",
+          "manifests/bash.pp": "5598d6ea9492fc771fe38aab29c4da20",
+          "manifests/init.pp": "566f0234da6a3ad827863cc8eeef1020",
+          "manifests/plugin.pp": "a8a3f010806efd5835b7b15e67940300"
+        },
+        "dependencies": [
+
+        ],
+        "description": "Install Vagrant and plugins for it",
+        "license": "MIT",
+        "name": "mjanser-vagrant",
+        "project_page": "https://github.com/mjanser/puppet-vagrant.git",
+        "source": "git://github.com/mjanser/puppet-vagrant.git",
+        "summary": "Install Vagrant",
+        "types": [
+
+        ],
+        "version": "0.1.0"
+      },
+      "tags": [
+        "vagrant"
+      ],
+      "supported": false,
+      "file_uri": "/v3/files/mjanser-vagrant-0.1.0.tar.gz",
+      "file_size": 3526,
+      "file_md5": "910eb7144c3426e7e6a601bd2459ec1c",
+      "downloads": 2,
+      "readme": "<section class=\"markdown\"><h1>Vagrant module for Puppet</h1>\n\n<p>This module installs the latest version of Vagrant from <a href=\"http://www.vagrantup.com/downloads.html\">http://www.vagrantup.com/downloads.html</a>.</p>\n\n<h2>Description</h2>\n\n<p>This module uses $::operatingsystem and $::architecture to determine what package to install.</p>\n\n<p>NOTE: Versions older than 1.4.0 are not supported by this module because the download URL was complexer then.</p>\n\n<p>Currently supports:</p>\n\n<ul>\n<li>CentOS and Redhat (i386 and x86)</li>\n<li>Ubuntu and Debian (i386 and x86)</li>\n<li>Windows (not tested)</li>\n<li>Darwin (not tested)</li>\n</ul>\n\n<h2>Usage</h2>\n\n<p>Install latest version</p>\n\n<pre><code>include vagrant\n</code></pre>\n\n<p>Install 1.5.0</p>\n\n<pre><code>class { &#39;vagrant&#39;:\n   version =&gt; &#39;1.5.0&#39;\n}\n</code></pre>\n\n<p>Install bash completion</p>\n\n<pre><code>include vagrant::bash\n</code></pre>\n\n<p>Install plugin</p>\n\n<pre><code>vagrant::plugin { &#39;vagrant-hostmanager&#39;:\n   home =&gt; &#39;/home/myuser&#39;\n}\n</code></pre>\n\n<p>Install plugin in specific version</p>\n\n<pre><code>vagrant::plugin { &#39;vagrant-hostmanager&#39;:\n   home    =&gt; &#39;/home/myuser&#39;,\n   version =&gt; 0.8.0\n}\n</code></pre>\n\n<p>Install a pre-release plugin</p>\n\n<pre><code>vagrant::plugin { &#39;vagrant-hostmanager&#39;:\n   home       =&gt; &#39;/home/myuser&#39;,\n   prerelease =&gt; true\n}\n</code></pre>\n</section>",
+      "changelog": null,
+      "license": "<section class=\"plaintext\"><pre>The MIT License (MIT)\n\nCopyright (c) 2013 Dennis Rowe\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the &quot;Software&quot;), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and&#x2F;or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in\nall copies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN\nTHE SOFTWARE.</pre></section>",
+      "created_at": "2014-05-10 01:04:45 -0700",
+      "updated_at": "2014-05-10 01:23:51 -0700",
+      "deleted_at": null
+    }
+  ]
+}

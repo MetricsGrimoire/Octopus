@@ -29,7 +29,9 @@ from octopus.model import Project, User
 
 
 PROJECTS_LIMIT = 20
+RELEASES_LIMIT = 20
 PUPPET_MODULES_PATH = '/v3/modules'
+PUPPET_RELEASES_PATH = '/v3/releases'
 
 
 class PuppetForge(Backend):
@@ -54,6 +56,20 @@ class PuppetForgeFetcher(object):
         params = {'offset' : offset,
                   'limit' : limit}
         url = urlparse.urljoin(self.base_url, PUPPET_MODULES_PATH)
+
+        r = requests.get(url, params=params,
+                         headers=PuppetForgeFetcher.HEADERS)
+
+        self._last_url = r.url
+        return r.json()
+
+    def releases(self, project, username, offset, limit=RELEASES_LIMIT):
+        module = username + '-' + project
+        params = {'offset' : offset,
+                  'limit' : limit,
+                  'module' : module}
+
+        url = urlparse.urljoin(self.base_url, PUPPET_RELEASES_PATH)
 
         r = requests.get(url, params=params,
                          headers=PuppetForgeFetcher.HEADERS)
