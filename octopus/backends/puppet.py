@@ -114,6 +114,8 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
             project = Project()
             project.name = r['name']
             project.url = self.base_url + r['uri']
+            project.created_on = unmarshal_timestamp(r['created_at'])
+            project.updated_on = unmarshal_timestamp(r['updated_at'])
 
             # Assign owner of the project
             username = r['owner']['username']
@@ -171,13 +173,14 @@ class PuppetForgeReleasesIterator(ReleasesIterator):
             release.version = r['metadata']['version']
             release.url = self.base_url + r['uri']
             release.file_url = self.base_url + r['file_uri']
-            release.created_on = self.__unmarshal_timestamp(r['created_at'])
-            release.updated_on = self.__unmarshal_timestamp(r['updated_at'])
+            release.created_on = unmarshal_timestamp(r['created_at'])
+            release.updated_on = unmarshal_timestamp(r['updated_at'])
 
             self.releases.append(release)
 
         return self.releases.pop(0)
 
-    def __unmarshal_timestamp(self, ts):
-        # FIXME: store time zone data
-        return dateutil.parser.parse(ts).replace(tzinfo=None)
+
+def unmarshal_timestamp(ts):
+    # FIXME: store time zone data
+    return dateutil.parser.parse(ts).replace(tzinfo=None)

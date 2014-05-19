@@ -226,26 +226,36 @@ class TestPuppetForgeProjectsIterator(unittest.TestCase):
         project = projects[0]
         self.assertEqual('stdlib', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/puppetlabs-stdlib', project.url)
+        self.assertEqual('2011-05-24 18:34:58', str(project.created_on))
+        self.assertEqual('2014-05-14 04:41:21', str(project.updated_on))
         self.assertEqual(1, len(project.users))
 
         project = projects[1]
         self.assertEqual('concat', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/puppetlabs-concat', project.url)
+        self.assertEqual('2013-08-09 17:55:07', str(project.created_on))
+        self.assertEqual('2014-05-14 04:33:21', str(project.updated_on))
         self.assertEqual(1, len(project.users))
 
         project = projects[19]
         self.assertEqual('openldap', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/camptocamp-openldap', project.url)
+        self.assertEqual('2014-02-07 00:02:42', str(project.created_on))
+        self.assertEqual('2014-05-14 04:38:46', str(project.updated_on))
         self.assertEqual(1, len(project.users))
 
         project = projects[20]
         self.assertEqual('altlib', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/opentable-altlib', project.url)
+        self.assertEqual('2014-03-20 09:19:47', str(project.created_on))
+        self.assertEqual('2014-05-14 00:38:56', str(project.updated_on))
         self.assertEqual(1, len(project.users))
 
         project = projects[38]
         self.assertEqual('vagrant', project.name)
         self.assertEqual(MOCK_HTTP_SERVER_URL + '/v3/modules/mjanser-vagrant', project.url)
+        self.assertEqual('2014-05-10 01:04:25', str(project.created_on))
+        self.assertEqual('2014-05-14 04:34:00', str(project.updated_on))
         self.assertEqual(1, len(project.users))
 
 

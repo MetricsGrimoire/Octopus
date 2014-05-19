@@ -52,6 +52,8 @@ class Project(ModelBase):
     id = Column(Integer, primary_key=True)
     name = Column(String(32))
     url = Column(String(128))
+    created_on = Column(DateTime())
+    updated_on = Column(DateTime())
     platform_id = Column(Integer, ForeignKey('platforms.id'))
 
     # many to many projects-users relationship
