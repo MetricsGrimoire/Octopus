@@ -50,6 +50,7 @@ MOCK_HTTP_SERVER_URL = 'http://' + HTTP_HOST + ':' + str(HTTP_PORT)
 PUPPET_PROJECT_STDLIB = 'puppetlabs-stdlib'
 PUPPET_PROJECT_VAGRANT = 'mjanser-vagrant'
 PUPPET_PROJECT_ERROR = 'raise-error'
+PUPPET_PROJECT_NO_NAME = 'release-noname'
 
 # Data files
 PUPPET_MODULES_1 = 'puppet_modules_1.json'
@@ -58,6 +59,7 @@ PUPPET_RELEASES_STDLIB_1 = 'puppet_rel_stdlib_1.json'
 PUPPET_RELEASES_STDLIB_2 = 'puppet_rel_stdlib_2.json'
 PUPPET_RELEASES_VAGRANT = 'puppet_rel_vagrant.json'
 PUPPET_RELEASES_ERROR = 'puppet_rel_error.json'
+PUPPET_RELEASES_NO_NAME = 'puppet_rel_no_name.json'
 
 
 class MockPuppetForgeHTTPHandler(BaseHTTPRequestHandler):
@@ -101,6 +103,9 @@ class MockPuppetForgeHTTPHandler(BaseHTTPRequestHandler):
         if project_name == PUPPET_PROJECT_ERROR:
             # Simulate errors
             filename = PUPPET_RELEASES_ERROR
+        elif project_name == PUPPET_PROJECT_NO_NAME:
+            # Send release without name
+            filename = PUPPET_RELEASES_NO_NAME
         elif project_name == PUPPET_PROJECT_VAGRANT:
             filename = PUPPET_RELEASES_VAGRANT
         elif offset < 20:
@@ -369,6 +374,18 @@ class TestPuppetForgeReleasesIterator(unittest.TestCase):
 
         output = sys.stdout.getvalue().strip()
         self.assertRegexpMatches(output, 'Warning: Invalid full modulename')
+
+    def test_releases_no_name(self):
+        # Force server to send a json object withoud the name of the release
+        iterator = PuppetForgeReleasesIterator(MOCK_HTTP_SERVER_URL,
+                                               'noname', 'release')
+
+        releases = [elem for elem in iterator]
+        self.assertEqual(1, len(releases))
+
+        release = releases[0]
+        self.assertEqual('release-noname-1.0', release.name)
+        self.assertEqual('1.0', release.version)
 
     def test_releases_content(self):
         iterator = PuppetForgeReleasesIterator(MOCK_HTTP_SERVER_URL,

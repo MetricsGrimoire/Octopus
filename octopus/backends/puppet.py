@@ -180,8 +180,16 @@ class PuppetForgeReleasesIterator(ReleasesIterator):
 
         for r in json['results']:
             release = Release()
-            release.name = r['metadata']['name']
+
             release.version = r['metadata']['version']
+
+            # Some json objects might not include the official
+            # name of the release. For those cases, build a new one.
+            if not 'name' in r['metadata']:
+                release.name = '-'.join((self.username, self.project, release.version))
+            else:
+                release.name = r['metadata']['name']
+
             release.url = self.base_url + r['uri']
             release.file_url = self.base_url + r['file_uri']
             release.created_on = unmarshal_timestamp(r['created_at'])
