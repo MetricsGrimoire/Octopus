@@ -20,12 +20,12 @@
 #         Santiago Dueñas <sduenas@bitergia.com>
 #
 
-from sqlalchemy import Table, Column, DateTime, Integer, String, ForeignKey
+from sqlalchemy import Table, Column, DateTime, Integer, String,\
+    ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
 # FIXME: add unique checks
-
 
 ModelBase = declarative_base()
 
@@ -67,9 +67,11 @@ class User(ModelBase):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
-    username = name = Column(String(32))
+    username = Column(String(32))
 
     releases = relationship("Release", backref='user_releases')
+
+    __table_args__ = (UniqueConstraint('username', name='_username_unique'),)
 
 
 class Release(ModelBase):
