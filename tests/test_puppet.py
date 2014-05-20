@@ -118,11 +118,39 @@ class MockPuppetForgeHTTPHandler(BaseHTTPRequestHandler):
 
 class TestPuppetForge(unittest.TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.httpd = MockHTTPServer(HTTP_HOST, HTTP_PORT, TEST_FILES_DIRNAME,
+                                   MockPuppetForgeHTTPHandler)
+        cls.httpd.start()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.httpd.stop()
+
     def test_backend(self):
-        backend = PuppetForge()
+        backend = PuppetForge(MOCK_HTTP_SERVER_URL)
         self.assertIsInstance(backend, Backend)
         self.assertEqual('puppet', backend.name)
+        self.assertEqual(MOCK_HTTP_SERVER_URL, backend.url)
 
+    def test_projects(self):
+        backend = PuppetForge(MOCK_HTTP_SERVER_URL)
+
+        iterator = backend.projects()
+        self.assertIsInstance(iterator, PuppetForgeProjectsIterator)
+
+        projects = [p for p in iterator]
+        self.assertEqual(39, len(projects))
+
+    def test_releases(self):
+        backend = PuppetForge(MOCK_HTTP_SERVER_URL)
+
+        iterator = backend.releases('stdlib', 'puppetlabs')
+        self.assertIsInstance(iterator, PuppetForgeReleasesIterator)
+
+        releases = [r for r in iterator]
+        self.assertEqual(30, len(releases))
 
 class TestPuppetForgeFetcher(unittest.TestCase):
 

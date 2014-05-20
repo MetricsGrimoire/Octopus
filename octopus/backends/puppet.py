@@ -37,8 +37,15 @@ PUPPET_RELEASES_PATH = '/v3/releases'
 
 class PuppetForge(Backend):
 
-    def __init__(self):
+    def __init__(self, url):
         super(PuppetForge, self).__init__('puppet')
+        self.url = url
+
+    def projects(self):
+        return PuppetForgeProjectsIterator(self.url)
+
+    def releases(self, project, username):
+        return PuppetForgeReleasesIterator(self.url, project, username)
 
 
 class PuppetForgeFetcher(object):
