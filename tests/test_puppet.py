@@ -46,14 +46,18 @@ TEST_FILES_DIRNAME = 'data'
 TIMEOUT = 5
 MOCK_HTTP_SERVER_URL = 'http://' + HTTP_HOST + ':' + str(HTTP_PORT)
 
+# Mock projects
 PUPPET_PROJECT_STDLIB = 'puppetlabs-stdlib'
 PUPPET_PROJECT_VAGRANT = 'mjanser-vagrant'
+PUPPET_PROJECT_ERROR = 'raise-error'
 
+# Data files
 PUPPET_MODULES_1 = 'puppet_modules_1.json'
 PUPPET_MODULES_2 = 'puppet_modules_2.json'
 PUPPET_RELEASES_STDLIB_1 = 'puppet_rel_stdlib_1.json'
 PUPPET_RELEASES_STDLIB_2 = 'puppet_rel_stdlib_2.json'
 PUPPET_RELEASES_VAGRANT = 'puppet_rel_vagrant.json'
+PUPPET_RELEASES_ERROR = 'puppet_rel_error.json'
 
 
 class MockPuppetForgeHTTPHandler(BaseHTTPRequestHandler):
@@ -92,15 +96,19 @@ class MockPuppetForgeHTTPHandler(BaseHTTPRequestHandler):
         else:
             offset = 0
 
-        if qs['module'][0] == PUPPET_PROJECT_VAGRANT:
-            filepath = os.path.join(TEST_FILES_DIRNAME,
-                                    PUPPET_RELEASES_VAGRANT)
+        project_name = qs['module'][0]
+
+        if project_name == PUPPET_PROJECT_ERROR:
+            # Simulate errors
+            filename = PUPPET_RELEASES_ERROR
+        elif project_name == PUPPET_PROJECT_VAGRANT:
+            filename = PUPPET_RELEASES_VAGRANT
         elif offset < 20:
-            filepath = os.path.join(TEST_FILES_DIRNAME,
-                                    PUPPET_RELEASES_STDLIB_1)
+            filename = PUPPET_RELEASES_STDLIB_1
         else:
-            filepath = os.path.join(TEST_FILES_DIRNAME,
-                                    PUPPET_RELEASES_STDLIB_2)
+            filename = PUPPET_RELEASES_STDLIB_2
+
+        filepath = os.path.join(TEST_FILES_DIRNAME, filename)
         json = read_file(filepath)
 
         self.send_response(200, 'Ok')
@@ -344,6 +352,23 @@ class TestPuppetForgeReleasesIterator(unittest.TestCase):
 
         for release in releases:
             self.assertIsInstance(release, Release)
+
+    def test_releases_error_response(self):
+        # The list should be empty and the iterator
+        # print a warning message to the standard output
+        if not hasattr(sys.stdout, 'getvalue'):
+            self.fail('This test needs to run in buffered mode')
+
+        # Force server to simulate an error while getting
+        # info from releases
+        iterator = PuppetForgeReleasesIterator(MOCK_HTTP_SERVER_URL,
+                                               'error', 'raise')
+
+        releases = [elem for elem in iterator]
+        self.assertListEqual([], releases)
+
+        output = sys.stdout.getvalue().strip()
+        self.assertRegexpMatches(output, 'Warning: Invalid full modulename')
 
     def test_releases_content(self):
         iterator = PuppetForgeReleasesIterator(MOCK_HTTP_SERVER_URL,

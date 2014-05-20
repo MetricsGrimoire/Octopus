@@ -169,6 +169,10 @@ class PuppetForgeReleasesIterator(ReleasesIterator):
         json = self.fetcher.releases(self.project, self.username,
                                      self.offset, RELEASES_LIMIT)
 
+        if 'errors' in json:
+            print "Warning: " + json['errors'][0]
+            raise StopIteration
+
         if not json['pagination']['next']:
             self.has_next = False
         else:
