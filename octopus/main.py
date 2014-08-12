@@ -55,13 +55,18 @@ def parse_args():
                        help='Port of the host where the database server is running',
                        default='3306')
 
+    # Debugging parameter
+    parser.add_argument('-g', '--debug', help='Enable debug mode',
+                       action='store_true', dest='debug',
+                       default=False)
+
     # Parse arguments
     args = parser.parse_args()
 
     return args
 
 
-def fetch(url, platform_type):
+def fetch(url, platform_type, debug=False):
     if platform_type != 'puppet':
         return None
 
@@ -82,6 +87,8 @@ def fetch(url, platform_type):
             user.releases.append(release)
             project.releases.append(release)
         platform.projects.append(project)
+        if(debug):
+            print('Project %s fetched' % project.name)
 
     print('Fetch process completed')
 
@@ -98,5 +105,5 @@ def store(user, password, database, instance):
 
 def main():
     args = parse_args()
-    platform = fetch(args.url, args.backend)
+    platform = fetch(args.url, args.backend, args.debug)
     store(args.db_user, args.db_password, args.db_name, platform)
