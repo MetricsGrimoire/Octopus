@@ -97,7 +97,7 @@ def fetch(url, platform_type, debug=False):
     return platform
 
 
-def store(user, password, database, platform):
+def store(user, password, database, platform, debug=False):
     # Insert retrieved data into the database
     db = Database(user, password, database)
     db.connect()
@@ -107,15 +107,27 @@ def store(user, password, database, platform):
 
     if not stored_platform:
         db.add(platform)
+
+        if debug:
+            print('Platform %s and related projects and releases inserted' % platform)
     else:
+        if debug:
+            print('Platform %s already stored' % platform)
+
         for project in platform.projects:
             stored_project = db.session.query(Project).\
-                filter(Project.name == project.name).first()
+                filter(Project.url == project.url).first()
 
             if not stored_project:
                 project.platform = stored_platform
                 db.add(project)
+
+                if debug:
+                    print('Project %s and related releases inserted' % project)
             else:
+                if debug:
+                    print('Project %s already stored' % project)
+
                 for release in project.releases:
                     stored_release = db.session.query(Release).\
                         filter(Release.name == release.name,
@@ -133,12 +145,18 @@ def store(user, password, database, platform):
 
                         release.project = stored_project
                         db.add(release)
-    db.disconnect()
 
+                        if debug:
+                            print('Release %s inserted' % release)
+                    elif debug:
+                        print('Release %s already stored' % release)
+
+    db.disconnect()
     print("Projects stored")
 
 
 def main():
     args = parse_args()
     platform = fetch(args.url, args.backend, args.debug)
-    store(args.db_user, args.db_password, args.db_name, platform)
+    store(args.db_user, args.db_password, args.db_name,
+          platform, args.debug)

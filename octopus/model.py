@@ -42,6 +42,10 @@ class Platform(ModelBase):
                       {'mysql_charset': 'utf8'})
 
 
+    def __repr__(self):
+        return self.url
+
+
 projects_users_table = Table('projects_users', ModelBase.metadata,
     Column('project_id', Integer, ForeignKey('projects.id')),
     Column('user_id', Integer, ForeignKey('users.id'))
@@ -70,6 +74,9 @@ class Project(ModelBase):
     __table_args__ = (UniqueConstraint('url', 'platform_id', name='_project_unique'),
                       {'mysql_charset': 'utf8'})
 
+    def __repr__(self):
+        return self.name
+
 
 class User(ModelBase):
     __tablename__ = 'users'
@@ -81,6 +88,9 @@ class User(ModelBase):
 
     __table_args__ = (UniqueConstraint('username', name='_username_unique'),
                       {'mysql_charset': 'utf8'})
+
+    def __repr__(self):
+        return self.username
 
 
 class Release(ModelBase):
@@ -104,3 +114,6 @@ class Release(ModelBase):
 
     __table_args__ = (UniqueConstraint('name', 'version', 'project_id', name='_release_unique'),
                       {'mysql_charset': 'utf8'})
+
+    def __repr__(self):
+        return "%s (%s)" % (self.name, self.version)
