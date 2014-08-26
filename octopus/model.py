@@ -25,7 +25,6 @@ from sqlalchemy import Table, Column, DateTime, Integer, String,\
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-# FIXME: add unique checks
 
 ModelBase = declarative_base()
 
@@ -38,6 +37,9 @@ class Platform(ModelBase):
     type = Column(String(32))
 
     projects = relationship("Project", backref='platforms')
+
+    __table_args__ = (UniqueConstraint('url', name='_url_unique'),
+                      {'mysql_charset': 'utf8'})
 
 
 projects_users_table = Table('projects_users', ModelBase.metadata,
@@ -56,11 +58,17 @@ class Project(ModelBase):
     updated_on = Column(DateTime())
     platform_id = Column(Integer, ForeignKey('platforms.id'))
 
+    # one to one project-platform relationship
+    platform = relationship("Platform", backref='project_platform')
+
     # many to many projects-users relationship
     users = relationship("User", secondary=projects_users_table)
 
     # one to many projects-releases relationship
     releases = relationship("Release", backref='project_releases')
+
+    __table_args__ = (UniqueConstraint('name', 'platform_id', name='_project_unique'),
+                      {'mysql_charset': 'utf8'})
 
 
 class User(ModelBase):
@@ -71,7 +79,8 @@ class User(ModelBase):
 
     releases = relationship("Release", backref='user_releases')
 
-    __table_args__ = (UniqueConstraint('username', name='_username_unique'),)
+    __table_args__ = (UniqueConstraint('username', name='_username_unique'),
+                      {'mysql_charset': 'utf8'})
 
 
 class Release(ModelBase):
@@ -86,3 +95,12 @@ class Release(ModelBase):
     updated_on = Column(DateTime())
     author_id = Column(Integer, ForeignKey('users.id'))
     project_id = Column(Integer, ForeignKey('projects.id'))
+
+    # one to one release-user relationship
+    user = relationship("User", backref='release_user')
+
+    # one to one release-project relationship
+    project = relationship("Project", backref='release_project')
+
+    __table_args__ = (UniqueConstraint('name', 'version', 'project_id', name='_release_unique'),
+                      {'mysql_charset': 'utf8'})

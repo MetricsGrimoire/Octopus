@@ -32,7 +32,7 @@ class Database(object):
     def __init__(self, user, password, database, host='localhost', port='3306'):
         # Create an engine
         self.url = URL('mysql', user, password, host, port, database)
-        self._engine = create_engine(self.url, echo=True)
+        self._engine = create_engine(self.url, echo=False)
         self._session = None
 
         # Create the schema on the database.
@@ -47,6 +47,10 @@ class Database(object):
     def disconnect(self):
         if self._session:
             self._session.close()
+
+    @property
+    def session(self):
+        return self._session
 
     def add(self, instance):
         try:

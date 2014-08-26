@@ -24,7 +24,7 @@ from argparse import ArgumentParser
 
 from octopus.backends.puppet import PuppetForge
 from octopus.database import Database
-from octopus.model import Platform
+from octopus.model import Platform, User, Project, Release
 
 
 def parse_args():
@@ -84,10 +84,12 @@ def fetch(url, platform_type, debug=False):
     for project in forge.projects():
         user = project.users[0]
         for release in forge.releases(project.name, user.username):
-            user.releases.append(release)
+            release.user = user
+            release.project = project
             project.releases.append(release)
         platform.projects.append(project)
-        if(debug):
+
+        if debug:
             print('Project %s fetched' % project.name)
 
     print('Fetch process completed')
@@ -95,12 +97,45 @@ def fetch(url, platform_type, debug=False):
     return platform
 
 
-def store(user, password, database, instance):
+def store(user, password, database, platform):
     # Insert retrieved data into the database
     db = Database(user, password, database)
     db.connect()
-    db.add(instance)
+
+    stored_platform = db.session.query(Platform).\
+        filter(Platform.url == platform.url).first()
+
+    if not stored_platform:
+        db.add(platform)
+    else:
+        for project in platform.projects:
+            stored_project = db.session.query(Project).\
+                filter(Project.name == project.name).first()
+
+            if not stored_project:
+                project.platform = stored_platform
+                db.add(project)
+            else:
+                for release in project.releases:
+                    stored_release = db.session.query(Release).\
+                        filter(Release.name == release.name,
+                               Release.version == release.version,
+                               Release.project == stored_project)
+
+                    if not stored_release:
+                        stored_user = db.session.query(User).\
+                            filter(User.username == release.user.username).first()
+
+                        if not stored_user:
+                            db.add(release.user)
+                        else:
+                            release.user = stored_user
+
+                        release.project = stored_project
+                        db.add(release)
     db.disconnect()
+
+    print("Projects stored")
 
 
 def main():
