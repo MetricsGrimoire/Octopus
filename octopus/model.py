@@ -83,6 +83,7 @@ class User(ModelBase):
 
     id = Column(Integer, primary_key=True)
     username = Column(String(32))
+    email = Column(String(128))
 
     releases = relationship("Release", backref='user_releases')
 
