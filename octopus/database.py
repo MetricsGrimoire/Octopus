@@ -20,9 +20,12 @@
 #         Santiago Dueñas <sduenas@bitergia.com>
 #
 
+from contextlib import contextmanager
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 
 from octopus.model import ModelBase
 
@@ -31,30 +34,32 @@ class Database(object):
 
     def __init__(self, user, password, database, host='localhost', port='3306'):
         # Create an engine
-        self.url = URL('mysql', user, password, host, port, database)
-        self._engine = create_engine(self.url, echo=False)
-        self._session = None
+        self.url = URL('mysql', user, password, host, port, database,
+                       query={'charset' : 'utf8'})
+        self._engine = create_engine(self.url, poolclass=NullPool, echo=False)
+        self._Session = sessionmaker(bind=self._engine)
 
         # Create the schema on the database.
         # It won't replace any existing schema
         ModelBase.metadata.create_all(self._engine)
 
+    @contextmanager
     def connect(self):
-        if not self._session:
-            Session = sessionmaker(bind=self._engine)
-            self._session = Session()
+        session = self._Session()
 
-    def disconnect(self):
-        if self._session:
-            self._session.close()
-
-    @property
-    def session(self):
-        return self._session
-
-    def add(self, instance):
         try:
-            self._session.add(instance)
-            self._session.commit()
+            yield session
+            session.commit()
         except:
-            self._session.rollback()
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+    def clear(self):
+        session = self._Session()
+
+        for table in reversed(ModelBase.metadata.sorted_tables):
+            session.execute(table.delete())
+            session.commit()
+        session.close()

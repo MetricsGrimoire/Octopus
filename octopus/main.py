@@ -66,97 +66,100 @@ def parse_args():
     return args
 
 
-def fetch(url, platform_type, debug=False):
+def fetch_and_store(url, platform_type, session, debug=False):
     if platform_type != 'puppet':
-        return None
+        return
+
+    np = 0
+    tp = 0
+    nr = 0
+    tr = 0
+
+    platform = session.query(Platform).\
+        filter(Platform.url == url).first()
+
+    if not platform:
+        platform = Platform()
+        platform.type = 'puppet'
+        platform.url = url
+        session.add(platform)
+
+        if debug:
+            print('Platform %s added' % platform)
+    elif debug:
+        print('Platform %s already stored' % platform)
 
     # Create the object to retrieve the projects
     forge = PuppetForge(url)
-
-    # Define the platform
-    platform = Platform()
-    platform.type = 'puppet'
-    platform.url = url
 
     print('Fetching projects from %s' % url)
 
     # Fetch projects and releases from the forge
     for project in forge.projects():
-        user = project.users[0]
-        for release in forge.releases(project.name, user.username):
-            release.user = user
+        user = project.users.pop(0)
+
+        stored_user = session.query(User).\
+            filter(User.username == user.username).first()
+
+        if not stored_user:
+            session.add(user)
+            stored_user = user
+
+        for release in forge.releases(project.name, stored_user.username):
             release.project = project
             project.releases.append(release)
-        platform.projects.append(project)
 
         if debug:
             print('Project %s fetched' % project.name)
 
-    print('Fetch process completed')
+        stored_project = session.query(Project).\
+            filter(Project.url == project.url).first()
 
-    return platform
+        tp += 1
 
+        if not stored_project:
+            project.platform_id = platform.id
+            session.add(project)
 
-def store(user, password, database, platform, debug=False):
-    # Insert retrieved data into the database
-    db = Database(user, password, database)
-    db.connect()
+            np += 1
+            nr += len(project.releases)
+            tr += len(project.releases)
 
-    stored_platform = db.session.query(Platform).\
-        filter(Platform.url == platform.url).first()
+            if debug:
+                print('Project %s and related releases inserted' % project)
+        else:
+            if debug:
+                print('Project %s already stored' % project)
 
-    if not stored_platform:
-        db.add(platform)
+            for release in project.releases:
+                tr += 1
 
-        if debug:
-            print('Platform %s and related projects and releases inserted' % platform)
-    else:
-        if debug:
-            print('Platform %s already stored' % platform)
+                stored_release = session.query(Release).\
+                    filter(Release.name == release.name,
+                           Release.version == release.version,
+                           Release.project == stored_project)
 
-        for project in platform.projects:
-            stored_project = db.session.query(Project).\
-                filter(Project.url == project.url).first()
+                if not stored_release:
+                    user.releases.appen(release)
+                    release.project_id = stored_project.id
+                    session.add(release)
 
-            if not stored_project:
-                project.platform = stored_platform
-                db.add(project)
+                    nr += 1
 
-                if debug:
-                    print('Project %s and related releases inserted' % project)
-            else:
-                if debug:
-                    print('Project %s already stored' % project)
+                    if debug:
+                        print('Release %s inserted' % release)
+                elif debug:
+                    print('Release %s already stored' % release)
 
-                for release in project.releases:
-                    stored_release = db.session.query(Release).\
-                        filter(Release.name == release.name,
-                               Release.version == release.version,
-                               Release.project == stored_project)
-
-                    if not stored_release:
-                        stored_user = db.session.query(User).\
-                            filter(User.username == release.user.username).first()
-
-                        if not stored_user:
-                            db.add(release.user)
-                        else:
-                            release.user = stored_user
-
-                        release.project = stored_project
-                        db.add(release)
-
-                        if debug:
-                            print('Release %s inserted' % release)
-                    elif debug:
-                        print('Release %s already stored' % release)
-
-    db.disconnect()
-    print("Projects stored")
+    print('Fetch and storage processes completed')
+    print('Total %d/%d of new projects inserted' % (np, tp))
+    print('Total %d/%d of new releases inserted' % (nr, tr))
 
 
 def main():
     args = parse_args()
-    platform = fetch(args.url, args.backend, args.debug)
-    store(args.db_user, args.db_password, args.db_name,
-          platform, args.debug)
+
+    db = Database(args.db_user, args.db_password, args.db_name)
+
+    with db.connect() as session:
+        fetch_and_store(args.url, args.backend, session, args.debug)
