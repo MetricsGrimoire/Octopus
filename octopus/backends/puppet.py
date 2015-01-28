@@ -26,7 +26,7 @@ import dateutil.parser
 import requests
 
 from octopus.backends import Backend, ProjectsIterator, ReleasesIterator
-from octopus.model import Project, User, Release
+from octopus.model import Platform, Project, User, Release
 
 
 PROJECTS_LIMIT = 20
@@ -37,15 +37,30 @@ PUPPET_RELEASES_PATH = '/v3/releases'
 
 class PuppetForge(Backend):
 
-    def __init__(self, url):
+    def __init__(self, url, session):
         super(PuppetForge, self).__init__('puppet')
         self.url = url
+        self.session = session
 
-    def projects(self):
-        return PuppetForgeProjectsIterator(self.url)
+    def fetch(self):
+        platform = Platform.as_unique(self.session, url=self.url)
 
-    def releases(self, project, username):
-        return PuppetForgeReleasesIterator(self.url, project, username)
+        if not platform.id:
+            platform.type = 'puppet'
+
+        for project in self._projects(self.url, platform, self.session):
+            for release in self._releases(self.url, project, project.users[0], self.session):
+                project.releases.append(release)
+
+            platform.projects.append(project)
+
+        return platform
+
+    def _projects(self, url, platform, session):
+        return PuppetForgeProjectsIterator(url, platform, session)
+
+    def _releases(self, url, project, user, session):
+        return PuppetForgeReleasesIterator(url, project, user, session)
 
 
 class PuppetForgeFetcher(object):
@@ -88,10 +103,12 @@ class PuppetForgeFetcher(object):
 
 class PuppetForgeProjectsIterator(ProjectsIterator):
 
-    def __init__(self, base_url):
+    def __init__(self, base_url, platform, session):
         super(PuppetForgeProjectsIterator, self).__init__()
         self.fetcher = PuppetForgeFetcher(base_url)
         self.base_url = base_url
+        self.session = session
+        self.platform = platform
         self.projects = []
         self.users = {}
         self.has_next = True
@@ -118,18 +135,19 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
             self.offset += PROJECTS_LIMIT
 
         for r in json['results']:
-            project = Project()
-            project.name = r['name']
-            project.url = self.base_url + r['uri']
-            project.created_on = unmarshal_timestamp(r['created_at'])
+            project = Project().as_unique(self.session, name=r['name'],
+                                          platform_id=self.platform.id)
             project.updated_on = unmarshal_timestamp(r['updated_at'])
+
+            if not project.id:
+                project.url = self.base_url + r['uri']
+                project.created_on = unmarshal_timestamp(r['created_at'])
 
             # Assign owner of the project
             username = r['owner']['username']
 
             if not username in self.users:
-                user = User()
-                user.username = username
+                user = User().as_unique(self.session, username=username)
                 self.users[username] = user
             else:
                 user = self.users[username]
@@ -143,12 +161,13 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
 
 class PuppetForgeReleasesIterator(ReleasesIterator):
 
-    def __init__(self, base_url, project, username):
+    def __init__(self, base_url, project, user, session):
         super(PuppetForgeReleasesIterator, self).__init__()
         self.fetcher = PuppetForgeFetcher(base_url)
         self.base_url = base_url
         self.project = project
-        self.username = username
+        self.user = user
+        self.session = session
         self.releases = []
         self.has_next = True
         self.offset = 0
@@ -166,7 +185,7 @@ class PuppetForgeReleasesIterator(ReleasesIterator):
             raise StopIteration
 
         # Fetch new set of releases
-        json = self.fetcher.releases(self.project, self.username,
+        json = self.fetcher.releases(self.project.name, self.user.username,
                                      self.offset, RELEASES_LIMIT)
 
         if 'errors' in json:
@@ -179,16 +198,19 @@ class PuppetForgeReleasesIterator(ReleasesIterator):
             self.offset += RELEASES_LIMIT
 
         for r in json['results']:
-            release = Release()
-
-            release.version = r['metadata']['version']
+            version = r['metadata']['version']
 
             # Some json objects might not include the official
             # name of the release. For those cases, build a new one.
             if not 'name' in r['metadata']:
-                release.name = '-'.join((self.username, self.project, release.version))
+                name = '-'.join((self.username, self.project, version))
             else:
-                release.name = r['metadata']['name']
+                name = r['metadata']['name']
+
+            release = Release().as_unique(self.session,
+                                          name=name,
+                                          version=version,
+                                          author_id=self.user.id)
 
             release.url = self.base_url + r['uri']
             release.file_url = self.base_url + r['file_uri']

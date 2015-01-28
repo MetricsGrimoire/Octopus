@@ -24,7 +24,26 @@ from argparse import ArgumentParser
 
 from octopus.backends.puppet import PuppetForge
 from octopus.database import Database
-from octopus.model import Platform, User, Project, Release
+
+
+def main():
+    args = parse_args()
+
+    db = Database(args.db_user, args.db_password, args.db_name)
+    session = db.connect()
+
+    if args.backend != 'puppet':
+        return
+
+    backend = PuppetForge(args.url, session)
+
+    platform = backend.fetch()
+    print('Fetch processes completed')
+
+    store(db, session, platform)
+    print('Storage processes completed')
+
+    session.close()
 
 
 def parse_args():
@@ -66,100 +85,8 @@ def parse_args():
     return args
 
 
-def fetch_and_store(url, platform_type, session, debug=False):
-    if platform_type != 'puppet':
-        return
-
-    np = 0
-    tp = 0
-    nr = 0
-    tr = 0
-
-    platform = session.query(Platform).\
-        filter(Platform.url == url).first()
-
-    if not platform:
-        platform = Platform()
-        platform.type = 'puppet'
-        platform.url = url
-        session.add(platform)
-
-        if debug:
-            print('Platform %s added' % platform)
-    elif debug:
-        print('Platform %s already stored' % platform)
-
-    # Create the object to retrieve the projects
-    forge = PuppetForge(url)
-
-    print('Fetching projects from %s' % url)
-
-    # Fetch projects and releases from the forge
-    for project in forge.projects():
-        user = project.users.pop(0)
-
-        stored_user = session.query(User).\
-            filter(User.username == user.username).first()
-
-        if not stored_user:
-            session.add(user)
-            stored_user = user
-
-        for release in forge.releases(project.name, stored_user.username):
-            release.project = project
-            project.releases.append(release)
-
-        if debug:
-            print('Project %s fetched' % project.name)
-
-        stored_project = session.query(Project).\
-            filter(Project.url == project.url).first()
-
-        tp += 1
-
-        if not stored_project:
-            project.platform_id = platform.id
-            session.add(project)
-
-            np += 1
-            nr += len(project.releases)
-            tr += len(project.releases)
-
-            if debug:
-                print('Project %s and related releases inserted' % project)
-        else:
-            if debug:
-                print('Project %s already stored' % project)
-
-            for release in project.releases:
-                tr += 1
-
-                stored_release = session.query(Release).\
-                    filter(Release.name == release.name,
-                           Release.version == release.version,
-                           Release.project == stored_project)
-
-                if not stored_release:
-                    user.releases.append(release)
-                    release.project_id = stored_project.id
-                    session.add(release)
-
-                    nr += 1
-
-                    if debug:
-                        print('Release %s inserted' % release)
-                elif debug:
-                    print('Release %s already stored' % release)
-
-    print('Fetch and storage processes completed')
-    print('Total %d/%d of new projects inserted' % (np, tp))
-    print('Total %d/%d of new releases inserted' % (nr, tr))
-
-
-def main():
-    args = parse_args()
-
-    db = Database(args.db_user, args.db_password, args.db_name)
-
-    with db.connect() as session:
-        fetch_and_store(args.url, args.backend, session, args.debug)
+def store(db, session, platform):
+    try:
+        db.store(session, platform)
+    except Exception, e:
+        raise RuntimeError(str(e))

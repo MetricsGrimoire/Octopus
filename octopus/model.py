@@ -29,7 +29,24 @@ from sqlalchemy.ext.declarative import declarative_base
 ModelBase = declarative_base()
 
 
-class Platform(ModelBase):
+class UniqueObject(object):
+
+    @classmethod
+    def unique_filter(cls, query, *arg, **kw):
+        raise NotImplementedError
+
+    @classmethod
+    def as_unique(cls, session, *arg, **kw):
+        return _unique(
+                    session,
+                    cls,
+                    cls.unique_filter,
+                    cls,
+                    arg, kw
+               )
+
+
+class Platform(UniqueObject, ModelBase):
     __tablename__ = 'platforms'
 
     id = Column(Integer, primary_key=True)
@@ -45,6 +62,10 @@ class Platform(ModelBase):
     def __repr__(self):
         return self.url
 
+    @classmethod
+    def unique_filter(cls, query, url):
+        return query.filter(Platform.url == url)
+
 
 projects_users_table = Table('projects_users', ModelBase.metadata,
     Column('project_id', Integer, ForeignKey('projects.id')),
@@ -52,7 +73,7 @@ projects_users_table = Table('projects_users', ModelBase.metadata,
 )
 
 
-class Project(ModelBase):
+class Project(UniqueObject, ModelBase):
     __tablename__ = 'projects'
 
     id = Column(Integer, primary_key=True)
@@ -74,11 +95,16 @@ class Project(ModelBase):
     __table_args__ = (UniqueConstraint('url', 'platform_id', name='_project_unique'),
                       {'mysql_charset': 'utf8'})
 
+    @classmethod
+    def unique_filter(cls, query, name, platform_id):
+        return query.filter(Project.name == name,
+                            Project.platform_id == platform_id)
+
     def __repr__(self):
         return self.name
 
 
-class User(ModelBase):
+class User(UniqueObject, ModelBase):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
@@ -90,11 +116,15 @@ class User(ModelBase):
     __table_args__ = (UniqueConstraint('username', name='_username_unique'),
                       {'mysql_charset': 'utf8'})
 
+    @classmethod
+    def unique_filter(cls, query, username):
+        return query.filter(User.username == username)
+
     def __repr__(self):
         return self.username
 
 
-class Release(ModelBase):
+class Release(UniqueObject, ModelBase):
     __tablename__ = 'releases'
 
     id = Column(Integer, primary_key=True)
@@ -116,5 +146,25 @@ class Release(ModelBase):
     __table_args__ = (UniqueConstraint('name', 'version', 'project_id', name='_release_unique'),
                       {'mysql_charset': 'utf8'})
 
+    @classmethod
+    def unique_filter(cls, query, name, version, author_id):
+        return query.filter(Release.name == name,
+                            Release.version == version,
+                            Release.author_id == author_id)
+
     def __repr__(self):
         return "%s (%s)" % (self.name, self.version)
+
+
+def _unique(session, cls, queryfunc, constructor, arg, kw):
+    with session.no_autoflush:
+        q = session.query(cls)
+        q = queryfunc(q, *arg, **kw)
+
+        obj = q.first()
+
+        if not obj:
+            obj = constructor(*arg, **kw)
+
+        session.add(obj)
+    return obj
