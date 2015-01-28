@@ -203,7 +203,7 @@ class PuppetForgeReleasesIterator(ReleasesIterator):
             # Some json objects might not include the official
             # name of the release. For those cases, build a new one.
             if not 'name' in r['metadata']:
-                name = '-'.join((self.username, self.project, version))
+                name = '-'.join((self.user.username, self.project.name, version))
             else:
                 name = r['metadata']['name']
 
