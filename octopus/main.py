@@ -140,7 +140,7 @@ def fetch_and_store(url, platform_type, session, debug=False):
                            Release.project == stored_project)
 
                 if not stored_release:
-                    user.releases.appen(release)
+                    user.releases.append(release)
                     release.project_id = stored_project.id
                     session.add(release)
 
