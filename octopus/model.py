@@ -96,9 +96,9 @@ class Project(UniqueObject, ModelBase):
                       {'mysql_charset': 'utf8'})
 
     @classmethod
-    def unique_filter(cls, query, name, platform_id):
+    def unique_filter(cls, query, name, platform):
         return query.filter(Project.name == name,
-                            Project.platform_id == platform_id)
+                            Project.platform == platform)
 
     def __repr__(self):
         return self.name
@@ -147,10 +147,10 @@ class Release(UniqueObject, ModelBase):
                       {'mysql_charset': 'utf8'})
 
     @classmethod
-    def unique_filter(cls, query, name, version, author_id):
+    def unique_filter(cls, query, name, version, user):
         return query.filter(Release.name == name,
                             Release.version == version,
-                            Release.author_id == author_id)
+                            Release.user == user)
 
     def __repr__(self):
         return "%s (%s)" % (self.name, self.version)

@@ -136,7 +136,7 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
 
         for r in json['results']:
             project = Project().as_unique(self.session, name=r['name'],
-                                          platform_id=self.platform.id)
+                                          platform=self.platform)
             project.updated_on = unmarshal_timestamp(r['updated_at'])
 
             if not project.id:
@@ -210,7 +210,7 @@ class PuppetForgeReleasesIterator(ReleasesIterator):
             release = Release().as_unique(self.session,
                                           name=name,
                                           version=version,
-                                          author_id=self.user.id)
+                                          user=self.user)
 
             release.url = self.base_url + r['uri']
             release.file_url = self.base_url + r['file_uri']
