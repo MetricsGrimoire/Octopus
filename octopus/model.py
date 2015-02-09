@@ -143,7 +143,7 @@ class Release(UniqueObject, ModelBase):
     # one to one release-project relationship
     project = relationship("Project", backref='release_project')
 
-    __table_args__ = (UniqueConstraint('name', 'version', 'project_id', name='_release_unique'),
+    __table_args__ = (UniqueConstraint('name', 'version', 'author_id', name='_release_unique'),
                       {'mysql_charset': 'utf8'})
 
     @classmethod
