@@ -207,14 +207,18 @@ class PuppetForgeReleasesIterator(ReleasesIterator):
             else:
                 name = r['metadata']['name']
 
-            release = Release().as_unique(self.session,
-                                          name=name,
-                                          version=version,
-                                          user=self.user)
+            url = self.base_url + r['uri']
 
-            release.url = self.base_url + r['uri']
-            release.file_url = self.base_url + r['file_uri']
-            release.created_on = unmarshal_timestamp(r['created_at'])
+            release = Release().as_unique(self.session,
+                                          url=url)
+
+            if not release.id:
+                release.name = name
+                release.version = version
+                release.user = self.user
+                release.file_url = self.base_url + r['file_uri']
+                release.created_on = unmarshal_timestamp(r['created_at'])
+
             release.updated_on = unmarshal_timestamp(r['updated_at'])
 
             self.releases.append(release)

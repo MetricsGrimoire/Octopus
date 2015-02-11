@@ -143,14 +143,12 @@ class Release(UniqueObject, ModelBase):
     # one to one release-project relationship
     project = relationship("Project", backref='release_project')
 
-    __table_args__ = (UniqueConstraint('name', 'version', 'author_id', name='_release_unique'),
+    __table_args__ = (UniqueConstraint('url', name='_release_unique'),
                       {'mysql_charset': 'utf8'})
 
     @classmethod
-    def unique_filter(cls, query, name, version, user):
-        return query.filter(Release.name == name,
-                            Release.version == version,
-                            Release.user == user)
+    def unique_filter(cls, query, url):
+        return query.filter(Release.url == url)
 
     def __repr__(self):
         return "%s (%s)" % (self.name, self.version)
