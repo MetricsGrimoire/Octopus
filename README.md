@@ -23,6 +23,7 @@ Licensed under GNU General Public License (GPL), version 3 or later
 * SQLAlchemy >= 0.8.2
 * Python requests >= 1.2.3
 * github3.py >= 1.0.0a1
+* BeautifulSoup >= 4.0
 
 ## Installation
 
@@ -39,6 +40,7 @@ First, create database as follows:
 Run Octopus as follows:
     # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> puppet https://forgeapi.puppetlabs.com
     # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> github --gh-token XXXXX <owner> [<repository>]
+    # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> docker https://registry.hub.docker.com <owner> <repository>
 
 ## Contact
 

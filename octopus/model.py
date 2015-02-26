@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Bitergia
+# Copyright (C) 2014-2015 Bitergia
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -116,6 +116,7 @@ class Repository(UniqueObject, ModelBase):
     clone_url = Column(String(128))
     type = Column(String(32))
     starred = Column(Integer)
+    downloads = Column(Integer)
     forks = Column(Integer)
     watchers = Column(Integer)
     project_id = Column(Integer, ForeignKey('projects.id'))

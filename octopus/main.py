@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2014 Bitergia
+# Copyright (C) 2014-2015 Bitergia
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,8 +22,9 @@
 
 from argparse import ArgumentParser
 
-from octopus.backends.puppet import PuppetForge
+from octopus.backends.docker import DockerRegistry
 from octopus.backends.github import GitHubPlatform
+from octopus.backends.puppet import PuppetForge
 from octopus.database import Database
 
 
@@ -33,7 +34,10 @@ def main():
     db = Database(args.db_user, args.db_password, args.db_name)
     session = db.connect()
 
-    if args.backend == 'puppet':
+    if args.backend == 'docker':
+        backend = DockerRegistry(session, args.url,
+                                 args.owner, args.repository)
+    elif args.backend == 'puppet':
         backend = PuppetForge(session, args.url)
     elif args.backend == 'github':
         backend = GitHubPlatform(session, owner=args.owner, repository=args.repository,
@@ -41,6 +45,7 @@ def main():
                                  oauth_token=args.gh_token)
     else:
         print('Backend %s not found' % args.backend)
+        return
 
     print('Fetching...')
     platform = backend.fetch()
@@ -81,6 +86,7 @@ def parse_args():
     subparsers = parser.add_subparsers(dest='backend',
                                        help='Backend help')
 
+    DockerRegistry.set_arguments_subparser(subparsers)
     GitHubPlatform.set_arguments_subparser(subparsers)
     PuppetForge.set_arguments_subparser(subparsers)
 
