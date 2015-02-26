@@ -89,6 +89,9 @@ class Project(UniqueObject, ModelBase):
     # many to many projects-users relationship
     users = relationship("User", secondary=projects_users_table)
 
+    # one to many projects-repositories relationship
+    repositories = relationship("Repository", backref='project_repositories')
+
     # one to many projects-releases relationship
     releases = relationship("Release", backref='project_releases')
 
@@ -102,6 +105,33 @@ class Project(UniqueObject, ModelBase):
 
     def __repr__(self):
         return self.name
+
+
+class Repository(UniqueObject, ModelBase):
+    __tablename__ = 'repositories'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(32))
+    url = Column(String(128))
+    clone_url = Column(String(128))
+    type = Column(String(32))
+    starred = Column(Integer)
+    forks = Column(Integer)
+    watchers = Column(Integer)
+    project_id = Column(Integer, ForeignKey('projects.id'))
+
+    # one to one project-platform relationship
+    project = relationship("Project", backref='repo_project')
+
+    __table_args__ = (UniqueConstraint('url', name='_repo_unique'),
+                      {'mysql_charset': 'utf8'})
+
+    @classmethod
+    def unique_filter(cls, query, url):
+        return query.filter(Repository.url == url)
+
+    def __repr__(self):
+        return self.url
 
 
 class User(UniqueObject, ModelBase):
