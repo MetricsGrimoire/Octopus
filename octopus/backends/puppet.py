@@ -37,10 +37,18 @@ PUPPET_RELEASES_PATH = '/v3/releases'
 
 class PuppetForge(Backend):
 
-    def __init__(self, url, session):
+    def __init__(self, session, url):
         super(PuppetForge, self).__init__('puppet')
         self.url = url
         self.session = session
+
+    @classmethod
+    def set_arguments_subparser(cls, parser):
+        subparser = parser.add_parser('puppet', help='Puppet backend')
+
+        # Positional arguments
+        subparser.add_argument('url',
+                               help='Puppet forge url')
 
     def fetch(self):
         platform = Platform.as_unique(self.session, url=self.url)

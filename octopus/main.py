@@ -23,6 +23,7 @@
 from argparse import ArgumentParser
 
 from octopus.backends.puppet import PuppetForge
+from octopus.backends.github import GitHubPlatform
 from octopus.database import Database
 
 
@@ -32,11 +33,16 @@ def main():
     db = Database(args.db_user, args.db_password, args.db_name)
     session = db.connect()
 
-    if args.backend != 'puppet':
-        return
+    if args.backend == 'puppet':
+        backend = PuppetForge(session, args.url)
+    elif args.backend == 'github':
+        backend = GitHubPlatform(session, owner=args.owner, repository=args.repository,
+                                 url=args.gh_url, user=args.gh_user, password=args.gh_password,
+                                 oauth_token=args.gh_token)
+    else:
+        print('Backend %s not found' % args.backend)
 
-    backend = PuppetForge(args.url, session)
-
+    print('Fetching...')
     platform = backend.fetch()
     print('Fetch processes completed')
 
@@ -47,15 +53,7 @@ def main():
 
 
 def parse_args():
-    parser = ArgumentParser(usage="Usage: '%(prog)s [options] URL")
-
-    # Positional arguments
-    parser.add_argument('url', help='URL used to fetch info about projects')
-
-    # Required arguments
-    parser.add_argument('-b', '--backend', dest='backend',
-                        help='Backend used to fetch projects info', required=True,
-                        choices=['puppet'])
+    parser = ArgumentParser()
 
     # Database options
     group = parser.add_argument_group('Database options')
@@ -78,6 +76,13 @@ def parse_args():
     parser.add_argument('-g', '--debug', help='Enable debug mode',
                        action='store_true', dest='debug',
                        default=False)
+
+    # Add specific backend subparsers
+    subparsers = parser.add_subparsers(dest='backend',
+                                       help='Backend help')
+
+    GitHubPlatform.set_arguments_subparser(subparsers)
+    PuppetForge.set_arguments_subparser(subparsers)
 
     # Parse arguments
     args = parser.parse_args()
