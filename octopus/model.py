@@ -77,7 +77,7 @@ class Project(UniqueObject, ModelBase):
     __tablename__ = 'projects'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(32))
+    name = Column(String(64))
     url = Column(String(128))
     created_on = Column(DateTime())
     updated_on = Column(DateTime())
@@ -95,7 +95,7 @@ class Project(UniqueObject, ModelBase):
     # one to many projects-releases relationship
     releases = relationship("Release", backref='project_releases')
 
-    __table_args__ = (UniqueConstraint('url', 'platform_id', name='_project_unique'),
+    __table_args__ = (UniqueConstraint('name', 'platform_id', name='_project_unique'),
                       {'mysql_charset': 'utf8'})
 
     @classmethod
@@ -111,7 +111,7 @@ class Repository(UniqueObject, ModelBase):
     __tablename__ = 'repositories'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(32))
+    name = Column(String(64))
     url = Column(String(128))
     clone_url = Column(String(128))
     type = Column(String(32))
@@ -159,7 +159,7 @@ class Release(UniqueObject, ModelBase):
     __tablename__ = 'releases'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(32))
+    name = Column(String(64))
     version = Column(String(32))
     url = Column(String(128))
     file_url = Column(String(128))
