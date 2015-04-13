@@ -143,12 +143,14 @@ class PuppetForgeProjectsIterator(ProjectsIterator):
             self.offset += PROJECTS_LIMIT
 
         for r in json['results']:
-            project = Project().as_unique(self.session, name=r['name'],
+            url = self.base_url + r['uri']
+
+            project = Project().as_unique(self.session, url=url,
                                           platform=self.platform)
             project.updated_on = unmarshal_timestamp(r['updated_at'])
 
             if not project.id:
-                project.url = self.base_url + r['uri']
+                project.name = r['name']
                 project.created_on = unmarshal_timestamp(r['created_at'])
 
             # Assign owner of the project

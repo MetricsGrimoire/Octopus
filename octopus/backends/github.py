@@ -103,10 +103,10 @@ class GitHubPlatform(Backend):
             raise Exception("GitHub - organization %s does not exist."
                             % owner)
 
-        project = Project().as_unique(self.session, name=owner,
+        project = Project().as_unique(self.session, url=o.html_url,
                                       platform=platform)
         if not project.id:
-            project.url = o.html_url
+            project.name = owner
 
         if repository:
             r = self.gh.repository(owner, repository)

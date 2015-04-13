@@ -86,11 +86,11 @@ class DockerRegistry(Backend):
             msg = "Docker - owner %s. Error: %s" % (owner, str(e))
             raise Exception(msg)
 
-        project = Project().as_unique(self.session, name=owner,
+        project = Project().as_unique(self.session, url=url,
                                       platform=platform)
 
         if not project.id:
-            project.url = url
+            project.name = owner
 
         return project
 

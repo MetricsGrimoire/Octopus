@@ -95,12 +95,12 @@ class Project(UniqueObject, ModelBase):
     # one to many projects-releases relationship
     releases = relationship("Release", backref='project_releases')
 
-    __table_args__ = (UniqueConstraint('name', 'platform_id', name='_project_unique'),
+    __table_args__ = (UniqueConstraint('url', 'platform_id', name='_project_unique'),
                       {'mysql_charset': 'utf8'})
 
     @classmethod
-    def unique_filter(cls, query, name, platform):
-        return query.filter(Project.name == name,
+    def unique_filter(cls, query, url, platform):
+        return query.filter(Project.url == url,
                             Project.platform == platform)
 
     def __repr__(self):
