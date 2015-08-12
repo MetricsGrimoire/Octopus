@@ -54,6 +54,7 @@ class Platform(UniqueObject, ModelBase):
     type = Column(String(32))
 
     projects = relationship("Project", backref='platforms')
+    gerrit_repositories = relationship("GerritRepository", backref='gerrit_repositories')
 
     __table_args__ = (UniqueConstraint('url', name='_url_unique'),
                       {'mysql_charset': 'utf8'})
@@ -71,6 +72,24 @@ projects_users_table = Table('projects_users', ModelBase.metadata,
     Column('project_id', Integer, ForeignKey('projects.id')),
     Column('user_id', Integer, ForeignKey('users.id'))
 )
+
+
+class GerritRepository(UniqueObject, ModelBase):
+    __tablename__ = 'gerrit_repositories'
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(64))
+    platform_id = Column(Integer, ForeignKey('platforms.id'))
+
+    # one to one repository-platform relationship
+    platform = relationship("Platform", backref='repository_platform')
+
+    @classmethod
+    def unique_filter(cls, query, url):
+        return query.filter(Repository.url == url)
+
+    def __repr__(self):
+        return self.url
 
 
 class Project(UniqueObject, ModelBase):

@@ -25,6 +25,7 @@ from argparse import ArgumentParser
 from octopus.backends.docker import DockerRegistry
 from octopus.backends.github import GitHubPlatform
 from octopus.backends.puppet import PuppetForge
+from octopus.backends.gerrit import Gerrit
 from octopus.database import Database
 
 
@@ -43,6 +44,8 @@ def main():
         backend = GitHubPlatform(session, owner=args.owner, repository=args.repository,
                                  url=args.gh_url, user=args.gh_user, password=args.gh_password,
                                  oauth_token=args.gh_token)
+    elif args.backend == 'gerrit':
+        backend = Gerrit(session, gerrit_user=args.gerrit_user, gerrit_url=args.gerrit_url)
     else:
         print('Backend %s not found' % args.backend)
         return
@@ -89,6 +92,7 @@ def parse_args():
     DockerRegistry.set_arguments_subparser(subparsers)
     GitHubPlatform.set_arguments_subparser(subparsers)
     PuppetForge.set_arguments_subparser(subparsers)
+    Gerrit.set_arguments_subparser(subparsers)
 
     # Parse arguments
     args = parser.parse_args()
