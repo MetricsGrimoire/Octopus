@@ -41,6 +41,10 @@ Run Octopus as follows:
     # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> puppet https://forgeapi.puppetlabs.com
     # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> github --gh-token XXXXX <owner> [<repository>]
     # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> docker https://registry.hub.docker.com <owner> <repository>
+    # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> gerrit --gerrit-user <gerrituser> --gerrit-url <gerriturl>
+
+To export data user the '--export' option in each backend.
+
 
 ## Contact
 
