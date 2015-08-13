@@ -22,6 +22,7 @@
 
 from octopus.backends import Backend
 from octopus.model import Platform, GerritRepository
+from octopus.query import Query
 
 import subprocess
 
@@ -44,6 +45,9 @@ class Gerrit(Backend):
                            default=None)
         group.add_argument('--gerrit-url', dest='gerrit_url',
                            help='Gerrit URL', default=None)
+        group.add_argument('--export', dest="export",
+                           help="When enabled, other options are ignored", default=False,
+                           action='store_true')
 
     def fetch(self):
         platform = Platform.as_unique(self.session, url=self.url)
@@ -63,3 +67,8 @@ class Gerrit(Backend):
         output = proc.communicate()
         return output[0].split("\n")
 
+    def export(self):
+        query_object = Query(self.session, GerritRepository)
+        gerrit_repositories = query_object.data()
+        for repo in gerrit_repositories:
+            print str(repo[1])

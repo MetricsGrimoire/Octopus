@@ -50,12 +50,16 @@ def main():
         print('Backend %s not found' % args.backend)
         return
 
-    print('Fetching...')
-    platform = backend.fetch()
-    print('Fetch processes completed')
+    if args.export:
+        # This write in stdout info linked to the selected backend
+        backend.export()
+    else:
+        print('Fetching...')
+        platform = backend.fetch()
+        print('Fetch processes completed')
 
-    store(db, session, platform)
-    print('Storage processes completed')
+        store(db, session, platform)
+        print('Storage processes completed')
 
     session.close()
 

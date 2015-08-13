@@ -17,38 +17,17 @@
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #
 # Authors:
-#     Santiago Dueñas <sduenas@bitergia.com>
+#         Daniel Izquierdo <dizquierdo@bitergia.com>
 #
 
+from sqlalchemy import select
 
-class Backend(object):
-    """Abstract class for backends."""
+class Query(object):
+    """Use to query database and export data"""
 
-    def __init__(self, name):
-        self._name = name
+    def __init__(self, session, alchemy_object):
+        self.session = session
+        self.alchemy_object = alchemy_object
 
-    @property
-    def name(self):
-        return self._name
-
-    def export(self):
-        raise NotImplementedError
-
-class ProjectsIterator(object):
-    """Abstract projects iterator"""
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        raise NotImplementedError
-
-
-class ReleasesIterator(object):
-    """Abstract releases iterator"""
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        raise NotImplementedError
+    def data(self):
+        return self.session.execute(select([self.alchemy_object]))
