@@ -78,7 +78,7 @@ class GerritRepository(UniqueObject, ModelBase):
     __tablename__ = 'gerrit_repositories'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(64))
+    name = Column(String(128))
     platform_id = Column(Integer, ForeignKey('platforms.id'))
 
     # one to one repository-platform relationship
