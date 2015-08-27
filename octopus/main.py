@@ -45,6 +45,7 @@ def main():
                                  url=args.gh_url, user=args.gh_user, password=args.gh_password,
                                  oauth_token=args.gh_token)
     elif args.backend == 'gerrit':
+        db.clear()
         backend = Gerrit(session, gerrit_user=args.gerrit_user, gerrit_url=args.gerrit_url)
     else:
         print('Backend %s not found' % args.backend)
