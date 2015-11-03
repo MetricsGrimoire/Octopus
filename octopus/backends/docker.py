@@ -20,28 +20,29 @@
 #     Santiago Dueñas <sduenas@bitergia.com>
 #
 
+import datetime
 import urlparse
 
-import bs4
 import requests
 
 from octopus.backends import Backend
-from octopus.model import Platform, Project, Repository
+from octopus.model import Platform, Project, Repository, RepositoryLog
 
 
 DOCKER_OWNER_PATH = '/u/'
+DOCKER_REPOSITORY_PATH = '/r/'
+DOCKER_API_REPOSITORIES = '/v2/repositories/'
 HEADERS = {'User-Agent': 'Octopus/0.0.1'}
 
 
 class DockerRegistry(Backend):
 
-    def __init__(self, session, url, owner, repository):
+    def __init__(self, session, url, owner):
         super(DockerRegistry, self).__init__('docker')
 
         self.session = session
         self.base_url = url
         self.owner = owner
-        self.repository = repository
 
     @classmethod
     def set_arguments_subparser(cls, parser):
@@ -51,10 +52,7 @@ class DockerRegistry(Backend):
         subparser.add_argument('url',
                                help='Docker registry url')
         subparser.add_argument('owner',
-                               help='Owner of the repository on Docker Hub')
-        subparser.add_argument('repository', nargs='?', default=None,
-                               help='Name of the repository on Docker Hub')
-
+                               help='Owner of the repositories on Docker Hub')
 
     def fetch(self):
         platform = Platform.as_unique(self.session, url=self.base_url)
@@ -62,15 +60,12 @@ class DockerRegistry(Backend):
         if not platform.id:
             platform.type = 'docker'
 
-        platform = self._fetch(self.base_url, self.owner, self.repository, platform)
+        platform = self._fetch(self.owner, platform)
 
         return platform
 
-    def _fetch(self, url, owner, repository, platform):
+    def _fetch(self, owner, platform):
         project = self._fetch_project(owner, platform)
-        repo = self._fetch_repository(owner, repository, platform)
-
-        project.repositories.append(repo)
         platform.projects.append(project)
 
         return platform
@@ -92,41 +87,65 @@ class DockerRegistry(Backend):
         if not project.id:
             project.name = owner
 
+        repositories = self._fetch_repositories(owner)
+
+        for repo in repositories:
+            project.repositories.append(repo)
+
         return project
 
-    def _fetch_repository(self, owner, repository, platform):
-        url = urlparse.urljoin(self.base_url, DOCKER_OWNER_PATH)
-        url = urlparse.urljoin(url, owner + '/' + repository)
+    def _fetch_repositories(self, owner):
+        page = 1
+        fetching = True
+        repositories = []
+
+        while fetching:
+            json_data = self._fetch_repositories_json(owner, page)
+            page += 1
+
+            for raw_repo in json_data['results']:
+                repo = self._parse_repository_json(owner, raw_repo)
+                repositories.append(repo)
+
+                if not json_data['next']:
+                    fetching = False
+
+        return repositories
+
+    def _fetch_repositories_json(self, owner, page=1):
+        url = urlparse.urljoin(self.base_url, DOCKER_API_REPOSITORIES)
+        url = urlparse.urljoin(url, owner)
+
+        params = {'page' : page}
 
         try:
-            r = requests.get(url, headers=HEADERS)
+            r = requests.get(url, headers=HEADERS, params=params)
             r.raise_for_status()
         except requests.exceptions.HTTPError, e:
-            msg = "Docker - repository %s:%s. Error: %s" \
-                % (owner, repository, str(e))
+            msg = "Docker - repositories %s. Error: %s" \
+                % (owner, str(e))
             raise Exception(msg)
 
-        try:
-            stars, downloads = self._parse_repository_html(r.text)
-        except Exception, e:
-            msg = "Docker - repository %s:%s. Error: %s" \
-                % (owner, repository, str(e))
+        return r.json()
+
+    def _parse_repository_json(self, owner, raw_repo):
+        name = raw_repo['name']
+
+        url = urlparse.urljoin(self.base_url, DOCKER_REPOSITORY_PATH)
+        url = urlparse.urljoin(url, owner + '/' + name)
 
         repo = Repository().as_unique(self.session, url=url)
 
         if not repo.id:
-            repo.name = repository
+            repo.name = name
             repo.type = 'docker'
 
-        repo.starred = stars
-        repo.downloads = downloads
+        repo.starred = int(raw_repo['star_count'])
+        repo.pulls = int(raw_repo['pull_count'])
+
+        repo_log = RepositoryLog(date=datetime.datetime.now(),
+                                 starred=repo.starred,
+                                 pulls=repo.pulls)
+        repo.log.append(repo_log)
 
         return repo
-
-    def _parse_repository_html(self, html):
-        soup = bs4.BeautifulSoup(html)
-
-        stars = int(soup.find('a', {'class' : 'stars'}).text)
-        downloads = int(soup.find('span', {'class' : 'downloads'}).text)
-
-        return stars, downloads

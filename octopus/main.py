@@ -36,8 +36,7 @@ def main():
     session = db.connect()
 
     if args.backend == 'docker':
-        backend = DockerRegistry(session, args.url,
-                                 args.owner, args.repository)
+        backend = DockerRegistry(session, args.url, args.owner)
     elif args.backend == 'puppet':
         backend = PuppetForge(session, args.url)
     elif args.backend == 'github':
@@ -50,7 +49,7 @@ def main():
         print('Backend %s not found' % args.backend)
         return
 
-    if args.export:
+    if hasattr(args, 'export'):
         # This write in stdout info linked to the selected backend
         backend.export()
     else:

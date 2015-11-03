@@ -135,6 +135,7 @@ class Repository(UniqueObject, ModelBase):
     clone_url = Column(String(128))
     type = Column(String(32))
     starred = Column(Integer)
+    pulls = Column(Integer)
     downloads = Column(Integer)
     forks = Column(Integer)
     watchers = Column(Integer)
@@ -142,6 +143,9 @@ class Repository(UniqueObject, ModelBase):
 
     # one to one project-platform relationship
     project = relationship("Project", backref='repo_project')
+
+    # one to many repository - log relationship
+    log = relationship("RepositoryLog", backref='repository_log')
 
     __table_args__ = (UniqueConstraint('url', name='_repo_unique'),
                       {'mysql_charset': 'utf8'})
@@ -152,6 +156,23 @@ class Repository(UniqueObject, ModelBase):
 
     def __repr__(self):
         return self.url
+
+
+class RepositoryLog(ModelBase):
+    __tablename__ = 'repositories_log'
+
+    id = Column(Integer, primary_key=True)
+    repo_id = Column(Integer, ForeignKey('repositories.id'))
+    date = Column(DateTime())
+    starred = Column(Integer)
+    pulls = Column(Integer)
+    downloads = Column(Integer)
+    forks = Column(Integer)
+    watchers = Column(Integer)
+
+    repository = relationship("Repository", backref='repo_log')
+
+    __table_args__ = ({'mysql_charset': 'utf8'})
 
 
 class User(UniqueObject, ModelBase):
