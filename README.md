@@ -35,9 +35,11 @@ In the system:
 ## Running Octopus
 
 First, create database as follows:
+
     # CREATE DATABASE <databasename> CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 Run Octopus as follows:
+
     # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> puppet https://forgeapi.puppetlabs.com
     # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> github --gh-token XXXXX <owner> [<repository>]
     # $ octopus -u <dbuser> -p <dbpassword> -d <dbname> docker https://registry.hub.docker.com <owner>
