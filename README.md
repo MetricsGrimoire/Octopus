@@ -28,8 +28,11 @@ Licensed under GNU General Public License (GPL), version 3 or later
 ## Installation
 
 Locally:
+
     # setup.py install
+    
 In the system:
+
     # sudo setup.py install
 
 ## Running Octopus
